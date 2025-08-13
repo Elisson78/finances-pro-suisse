@@ -29,8 +29,8 @@ RUN mkdir -p /var/log/nginx /var/cache/nginx && \
     chown -R nginx:nginx /var/log/nginx /var/cache/nginx /usr/share/nginx/html && \
     chmod -R 755 /usr/share/nginx/html
 
-# Expose port 80
-EXPOSE 80
+# Expose port 8080 (to match Traefik configuration)
+EXPOSE 8080
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]

@@ -1,0 +1,25 @@
+# Traefik configuration for Coolify compatibility
+[entryPoints]
+  [entryPoints.web]
+    address = ":8080"
+    [entryPoints.web.http.redirections.entryPoint]
+      to = "websecure"
+      scheme = "https"
+
+  [entryPoints.websecure]
+    address = ":443"
+
+[certificatesResolvers.letsencrypt.acme]
+  email = "admin@finace.event-connect.app"
+  storage = "/etc/traefik/acme/acme.json"
+  [certificatesResolvers.letsencrypt.acme.httpChallenge]
+    entryPoint = "web"
+
+[providers.docker]
+  watch = true
+  network = "coolify"
+  exposedByDefault = false
+
+[api]
+  dashboard = true
+  insecure = false
