@@ -18,10 +18,6 @@ RUN npm run build
 # Production stage
 FROM nginx:alpine
 
-# Create nginx user and group
-RUN addgroup -g 1001 -S nginx && \
-    adduser -S -D -H -u 1001 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx
-
 # Copy built files to nginx
 COPY --from=build /app/build /usr/share/nginx/html
 
@@ -35,9 +31,6 @@ RUN mkdir -p /var/log/nginx /var/cache/nginx && \
 
 # Expose port 80
 EXPOSE 80
-
-# Switch to nginx user
-USER nginx
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]
