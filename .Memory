@@ -1,0 +1,102 @@
+# CONTEXTO DO PROJETO - Finances Pro Suisse
+
+## 📋 Informações Básicas
+- **Nome do Projeto:** Finances Pro Suisse
+- **Tipo:** Web App
+- **Versão:** 0.1.0
+- **Descrição:** Sistema de gestão financeira para profissionais suíços com foco em faturamento e serviços
+
+## 🛠️ Stack Tecnológica
+- **Frontend:** React, TypeScript, Vite
+- **Backend:** Supabase
+- **Banco de Dados:** PostgreSQL (via Supabase)
+- **Outras tecnologias:** Tailwind CSS
+
+## 📁 Estrutura do Projeto
+```
+/frontend
+  /src
+    /components
+      /common
+        PrivateRoute.tsx
+      /layout
+        MainLayout.tsx
+        Header.tsx
+        Footer.tsx
+    /contexts
+      AuthContext.tsx
+    /pages
+      AdminDashboardPage.tsx
+      Factures.tsx
+      ServicesPage.tsx
+      Clients.jsx
+      Reports.jsx
+      DashboardHome.tsx
+      DashboardPage.tsx
+      HomePage.tsx
+      LoginPage.tsx
+      RegisterPage.tsx
+    /services
+      supabase.ts
+  /public
+  vite.config.ts
+  .Memory
+/backend
+  /rpc
+    fetch_all_factures.sql
+    get_factures_with_details.sql
+    fetch_all_services.sql
+    create_services_table.sql
+```
+
+## 🎯 Objetivos Atuais
+- [x] Implementar página de faturas (Factures)
+- [x] Implementar página de serviços (Services)
+- [x] Corrigir problemas de persistência no banco de dados
+- [x] Implementar sistema de autenticação com roles (admin/entreprise)
+- [x] Criar interface de administração para o SaaS
+- [ ] Desenvolver componentes dedicados para cada página de administração
+- [ ] Implementar funcionalidade de relatórios
+- [ ] Melhorar a estrutura das tabelas do Supabase
+
+## 📝 Padrões e Convenções
+- **Estilo de código:** Componentes React funcionais com hooks
+- **Naming conventions:** camelCase para variáveis, PascalCase para componentes
+- **Estrutura:** Páginas principais no diretório pages, componentes reutilizáveis em components
+- **Rotas:** Gerenciadas via React Router em App.tsx
+
+## 🔧 Comandos Importantes
+```bash
+# Desenvolvimento
+npm run dev
+
+# Build
+npm run build
+
+# Port padrão
+http://localhost:3001/ ou http://localhost:3002/
+```
+
+## 📌 Contexto Específico
+- **Estado atual:** Implementação da interface de administração do SaaS
+- **Próximos passos:** Desenvolver funcionalidades completas para cada módulo de administração
+- **Problemas resolvidos:**
+  - Correção da deleção de faturas usando o campo 'name' como identificador
+  - Correção do problema de valores zero nas faturas
+  - Implementação do redirecionamento baseado em papel do usuário
+- **Funcionalidades adicionadas:**
+  - Menu lateral de administração com 8+ módulos
+  - Sistema de autenticação com verificação de papel
+  - Páginas de placeholder para módulos de administração
+- **Problemas conhecidos:** 
+  - Necessidade de criar componentes reais para páginas de administração
+  - Melhorar a estrutura das tabelas no Supabase com chaves primárias adequadas
+
+## 💡 Instruções para IA
+Sempre considere:
+1. Manter consistência com o código existente usando componentes funcionais React
+2. Utilizar as funções do Supabase para operações de banco de dados
+3. Implementar tratamento de erros adequado para operações de banco
+4. Garantir que valores numéricos sejam corretamente formatados e salvos
+5. Manter interfaces em francês para o usuário final
+6. Foco atual: desenvolver as funcionalidades do painel de administração do SaaS
