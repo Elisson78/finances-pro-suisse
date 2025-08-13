@@ -1,3 +1,5 @@
+// Finances Pro Suisse - Sistema de Gestão Financeira
+// Deploy automático via Coolify - Teste de CI/CD
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from './pages/HomePage';
