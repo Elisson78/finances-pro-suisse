@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Obtenha essas variáveis do painel do Supabase
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
 
 // Verificação para garantir que as variáveis de ambiente estão configuradas
 if (!supabaseUrl || !supabaseAnonKey) {

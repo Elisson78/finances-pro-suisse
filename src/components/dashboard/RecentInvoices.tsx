@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-interface Invoice {
+export interface Invoice {
   id: string;
   client: string;
   date: string;

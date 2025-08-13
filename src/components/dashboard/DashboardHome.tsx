@@ -2,6 +2,7 @@ import React from 'react';
 import StatsCard from './StatsCard';
 import RecentInvoices from './RecentInvoices';
 import RecentClients from './RecentClients';
+import { Invoice } from './RecentInvoices';
 
 const DashboardHome: React.FC = () => {
   // Dados de exemplo para demonstração
@@ -53,41 +54,41 @@ const DashboardHome: React.FC = () => {
   ];
 
   // Dados de exemplo para as faturas recentes
-  const recentInvoices = [
+  const recentInvoices: Invoice[] = [
     {
       id: 'INV-001',
       client: 'TechnoServ SA',
       date: '15/07/2025',
       amount: '2,450 CHF',
-      status: 'paid'
+      status: 'paid' as const
     },
     {
       id: 'INV-002',
       client: 'Alpine Consulting',
       date: '12/07/2025',
       amount: '1,850 CHF',
-      status: 'pending'
+      status: 'pending' as const
     },
     {
       id: 'INV-003',
       client: 'Swiss Innovation AG',
       date: '10/07/2025',
       amount: '3,200 CHF',
-      status: 'paid'
+      status: 'paid' as const
     },
     {
       id: 'INV-004',
       client: 'Montreux Solutions',
       date: '08/07/2025',
       amount: '980 CHF',
-      status: 'overdue'
+      status: 'overdue' as const
     },
     {
       id: 'INV-005',
       client: 'Geneva Tech',
       date: '05/07/2025',
       amount: '1,500 CHF',
-      status: 'paid'
+      status: 'paid' as const
     }
   ];
 
