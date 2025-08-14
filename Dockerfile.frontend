@@ -32,8 +32,8 @@ RUN mkdir -p /var/log/nginx /var/cache/nginx && \
     chown -R nginx:nginx /var/log/nginx /var/cache/nginx /usr/share/nginx/html && \
     chmod -R 755 /usr/share/nginx/html
 
-# Expose port 3000 (for development) or 8080 (for production)
-EXPOSE 3000
+# Expose port 80 for Nginx
+EXPOSE 80
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]
