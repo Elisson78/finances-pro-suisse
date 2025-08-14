@@ -40,7 +40,14 @@ const authService = {
     return { user: result.user, session };
   },
   signUp: async (credentials: SignUpCredentials): Promise<{ user: User; session: Session }> => {
-    throw new Error('Registro não implementado');
+    const result = await apiService.register({
+      email: credentials.email,
+      password: credentials.password,
+      full_name: credentials.fullName,
+      company: credentials.companyName
+    });
+    const session = { user: result.user, access_token: result.token };
+    return { user: result.user, session };
   },
   signOut: async (): Promise<void> => {
     await apiService.logout();

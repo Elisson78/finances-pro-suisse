@@ -62,6 +62,20 @@ class ApiService {
     return response.data.data;
   }
 
+  async register(userData: { email: string; password: string; full_name: string; company: string }): Promise<{ user: User; token: string }> {
+    const response: AxiosResponse<ApiResponse<{ user: User; token: string }>> = await apiClient.post('/auth/register', userData);
+    
+    if (!response.data.data) {
+      throw new Error('Falha no registro');
+    }
+    
+    // Salvar token no localStorage
+    localStorage.setItem('authToken', response.data.data.token);
+    localStorage.setItem('user', JSON.stringify(response.data.data.user));
+    
+    return response.data.data;
+  }
+
   async logout(): Promise<void> {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
