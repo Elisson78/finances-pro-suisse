@@ -37,11 +37,13 @@ const LoginPage: React.FC = () => {
     setIsLoading(true);
     
     try {
-      await apiService.login(formData.email, formData.password);
+      console.log('Tentando fazer login...', formData.email);
+      const result = await apiService.login(formData.email, formData.password);
+      console.log('Login bem-sucedido:', result);
       navigate(from, { replace: true });
     } catch (err: any) {
       console.error('Login error:', err);
-      setError(err.message || 'Erreur de connexion. Veuillez vérifier vos informations.');
+      setError(err.response?.data?.message || err.message || 'Erreur de connexion. Veuillez vérifier vos informations.');
     } finally {
       setIsLoading(false);
     }

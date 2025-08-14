@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session, SignInCredentials, SignUpCredentials } from '../types/global';
+import apiService from '../services/api.service';
 
 interface AuthContextType {
   user: User | null;
@@ -10,26 +11,39 @@ interface AuthContextType {
   signOut: () => Promise<void>;
 }
 
-// TODO: Substituir por SQLite - Serviço de autenticação local
+// Serviço de autenticação usando API
 const authService = {
   getSession: async (): Promise<Session | null> => {
-    // TODO: Implementar com SQLite
+    const token = localStorage.getItem('authToken');
+    const userStr = localStorage.getItem('user');
+    
+    if (token && userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        return { user, access_token: token };
+      } catch {
+        return null;
+      }
+    }
     return null;
   },
   getCurrentUser: async (): Promise<User | null> => {
-    // TODO: Implementar com SQLite
-    return null;
+    try {
+      return await apiService.getCurrentUser();
+    } catch {
+      return null;
+    }
   },
   signIn: async (credentials: SignInCredentials): Promise<{ user: User; session: Session }> => {
-    // TODO: Implementar com SQLite
-    throw new Error('Autenticação não implementada');
+    const result = await apiService.login(credentials.email, credentials.password);
+    const session = { user: result.user, access_token: result.token };
+    return { user: result.user, session };
   },
   signUp: async (credentials: SignUpCredentials): Promise<{ user: User; session: Session }> => {
-    // TODO: Implementar com SQLite
     throw new Error('Registro não implementado');
   },
   signOut: async (): Promise<void> => {
-    // TODO: Implementar com SQLite
+    await apiService.logout();
   }
 };
 
