@@ -44,6 +44,39 @@ apiClient.interceptors.response.use(
 );
 
 class ApiService {
+  // Autenticação
+  async login(email: string, password: string): Promise<{ user: User; token: string }> {
+    const response: AxiosResponse<ApiResponse<{ user: User; token: string }>> = await apiClient.post('/auth/login', {
+      email,
+      password
+    });
+    
+    if (!response.data.data) {
+      throw new Error('Falha no login');
+    }
+    
+    // Salvar token no localStorage
+    localStorage.setItem('authToken', response.data.data.token);
+    localStorage.setItem('user', JSON.stringify(response.data.data.user));
+    
+    return response.data.data;
+  }
+
+  async logout(): Promise<void> {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+  }
+
+  async getCurrentUser(): Promise<User | null> {
+    try {
+      const response: AxiosResponse<ApiResponse<{ user: User }>> = await apiClient.get('/auth/me');
+      return response.data.data?.user || null;
+    } catch (error) {
+      this.logout();
+      return null;
+    }
+  }
+
   // Clientes
   async getClients(): Promise<Client[]> {
     const response: AxiosResponse<ApiResponse<Client[]>> = await apiClient.get('/clients');

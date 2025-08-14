@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import MainLayout from '../components/layout/MainLayout';
-import { useAuth } from '../contexts/AuthContext';
+import apiService from '../services/api.service';
 
 interface LocationState {
   from?: {
@@ -12,7 +12,6 @@ interface LocationState {
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn, isLoading: authLoading } = useAuth();
   
   const [formData, setFormData] = useState({
     email: '',
@@ -38,10 +37,7 @@ const LoginPage: React.FC = () => {
     setIsLoading(true);
     
     try {
-      await signIn({
-        email: formData.email,
-        password: formData.password,
-      });
+      await apiService.login(formData.email, formData.password);
       navigate(from, { replace: true });
     } catch (err: any) {
       console.error('Login error:', err);
