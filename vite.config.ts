@@ -21,7 +21,14 @@ export default defineConfig({
     outDir: 'build',
     sourcemap: true,
     target: 'es2015',
+    assetsDir: 'assets',
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      },
+    },
   },
+  base: './',
   optimizeDeps: {
     esbuildOptions: {
       target: 'es2020',
