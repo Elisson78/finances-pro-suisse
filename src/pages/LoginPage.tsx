@@ -105,9 +105,9 @@ const LoginPage: React.FC = () => {
             <button
               type="submit"
               className="w-full py-3 px-4 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 disabled:opacity-70"
-              disabled={isLoading || authLoading}
+              disabled={isLoading}
             >
-              {isLoading || authLoading ? (
+              {isLoading ? (
                 <div className="flex justify-center items-center">
                   <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-2"></div>
                   <span>Connexion en cours...</span>
