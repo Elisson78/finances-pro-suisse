@@ -16,3 +16,9 @@ build/
 *.swp
 *.swo
 *.tmp
+
+# SQLite database
+tmp/
+*.db
+*.sqlite
+*.sqlite3
