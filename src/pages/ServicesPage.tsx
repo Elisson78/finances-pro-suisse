@@ -107,7 +107,7 @@ const ServicesPage: React.FC = () => {
         const { data: directData, error: directError } = await supabase
           .from('Services')
           .select('*')
-          .order('created_at', { ascending: false });
+          // TODO: Substituir por SQLite - .order('created_at', { ascending: false });
         
         if (directError) {
           console.error('Erro ao buscar serviços diretamente:', directError);
@@ -134,7 +134,8 @@ const ServicesPage: React.FC = () => {
         console.log('Serviços obtidos via RPC:', servicesData);
         
         // Mapear dados para o formato esperado
-        const formattedServices = servicesData.map((service: any) => ({
+        // TODO: Substituir por SQLite - const formattedServices = servicesData.map((service: any) => ({
+        const formattedServices = (servicesData || []).map((service: any) => ({
           id: service.id,
           nom: service.name,
           description: service.description || '',

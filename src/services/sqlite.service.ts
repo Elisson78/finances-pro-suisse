@@ -272,12 +272,28 @@ class SQLiteService {
   }
 
   async getUserByEmail(email: string): Promise<User | null> {
-    return this.db.prepare('SELECT * FROM users WHERE email = ?').get(email) as User || null;
+    return new Promise((resolve, reject) => {
+      this.db.get('SELECT * FROM users WHERE email = ?', [email], (err, row) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(row as User || null);
+      });
+    });
   }
 
   // Métodos para clientes
   async getClients(userId: string): Promise<Client[]> {
-    return this.db.prepare('SELECT * FROM clients WHERE user_id = ? ORDER BY company').all(userId) as Client[];
+    return new Promise((resolve, reject) => {
+      this.db.all('SELECT * FROM clients WHERE user_id = ? ORDER BY company', [userId], (err, rows) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(rows as Client[]);
+      });
+    });
   }
 
   async createClient(clientData: Omit<Client, 'id' | 'created_at' | 'updated_at'>): Promise<Client> {
@@ -310,11 +326,19 @@ class SQLiteService {
 
   // Métodos para faturas
   async getFactures(userId: string): Promise<Facture[]> {
-    const factures = this.db.prepare('SELECT * FROM factures WHERE user_id = ? ORDER BY date DESC').all(userId) as Facture[];
-    return factures.map(f => ({
-      ...f,
-      articles: JSON.parse(f.articles as any)
-    }));
+    return new Promise((resolve, reject) => {
+      this.db.all('SELECT * FROM factures WHERE user_id = ? ORDER BY date DESC', [userId], (err, rows) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        const factures = rows as Facture[];
+        resolve(factures.map(f => ({
+          ...f,
+          articles: JSON.parse(f.articles as any)
+        })));
+      });
+    });
   }
 
   async createFacture(factureData: Omit<Facture, 'id' | 'created_at' | 'updated_at'>): Promise<Facture> {
@@ -351,7 +375,15 @@ class SQLiteService {
 
   // Métodos para serviços
   async getServices(userId: string): Promise<Service[]> {
-    return this.db.prepare('SELECT * FROM services WHERE user_id = ? ORDER BY name').all(userId) as Service[];
+    return new Promise((resolve, reject) => {
+      this.db.all('SELECT * FROM services WHERE user_id = ? ORDER BY name', [userId], (err, rows) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(rows as Service[]);
+      });
+    });
   }
 
   async createService(serviceData: Omit<Service, 'id' | 'created_at' | 'updated_at'>): Promise<Service> {

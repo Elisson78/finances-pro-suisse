@@ -47,28 +47,37 @@ const DashboardHome: React.FC = () => {
         setLoading(true);
         setError(null);
         
-        // 1. Buscar faturas recentes
+        // TODO: Substituir por SQLite - 1. Buscar faturas recentes
         const fetchFactures = async () => {
-          console.log('Buscando faturas do Supabase...');
-          const { data, error } = await supabase
-            .from('Factures')
-            .select('*')
-            .eq('category', 'facture')
-            .order('created_at', { ascending: false });
-            
-          if (error) throw error;
-          return data || [];
+          console.log('Buscando faturas do SQLite...');
+          // TODO: Implementar com SQLite
+          // const data = await sqliteService.getFactures(userId);
+          // return data || [];
+          
+          // Por enquanto, usar dados de exemplo
+          return [
+            {
+              id: 'INV-001',
+              description: 'Client: TechnoServ SA; Articles: Consultoria - 1x 150CHF',
+              unit_price: 15000,
+              created_at: '2025-08-14',
+              is_active: true
+            }
+          ];
         };
         
-        // 2. Buscar clientes ativos
+        // TODO: Substituir por SQLite - 2. Buscar clientes ativos
         const fetchClients = async () => {
-          console.log('Buscando clientes do Supabase...');
-          const { data, error } = await supabase
-            .from('clients')
-            .select('id');
-            
-          if (error) throw error;
-          return data || [];
+          console.log('Buscando clientes do SQLite...');
+          // TODO: Implementar com SQLite
+          // const data = await sqliteService.getClients(userId);
+          // return data || [];
+          
+          // Por enquanto, usar dados de exemplo
+          return [
+            { id: 'client_1' },
+            { id: 'client_2' }
+          ];
         };
         
         // Executar buscas em paralelo
