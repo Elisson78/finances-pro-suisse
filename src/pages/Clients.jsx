@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { setupClientsRPC } from "../utils/setupRPC";
-import { testClientsLoad, testCreateClient } from "../utils/testClients";
-import { diagnosticClients, createTestClient } from "../utils/diagnosticClients";
-import { fixClientsLoad, loadClientsFixed } from "../utils/fixClientsLoad";
+import apiService from "../services/api.service";
 
 // Ícones usando o Material Icons (já disponível no projeto)
 const IconNames = {
@@ -34,73 +31,33 @@ export default function Clients() {
   const [formMode, setFormMode] = useState('create'); // 'create' ou 'edit'
   const [currentClient, setCurrentClient] = useState(null);
   
-  // Estado para o formulário - nomes corretos conforme tabela Supabase
+  // Estado para o formulário
   const [formData, setFormData] = useState({
     company: '',
-    contact: '',
+    contact_person: '',
     email: '',
     phone: '',
     address: '',
     city: '',
-    postal: '',
+    postal_code: '',
     country: 'Suisse',
-    vat: '',
-    is_active: true
+    category: 'facture'
   });
   
   // Estado para erros de validação
   const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
-    // Tentar configurar RPC na primeira carga
-    setupClientsRPC().then(() => {
-      loadClients();
-    });
+    loadClients();
   }, []);
 
   const loadClients = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      // TODO: Substituir por SQLite - Primeiro, tentar usar RPC para buscar clientes
-      // const { data: { user } } = await auth.getUser();
-      
-      // TODO: Substituir por SQLite - Implementar busca de clientes
-      let clientsData = [];
-      let clientsError = null;
-      
-      try {
-        // TODO: Implementar com SQLite
-        // const user = await sqliteService.getCurrentUser();
-        // if (user) {
-        //   clientsData = await sqliteService.getClients(user.id);
-        // } else {
-        //   throw new Error('Utilisateur non authentifié');
-        // }
-        
-        // Por enquanto, usar dados de exemplo
-        clientsData = [
-          {
-            id: 'client_1',
-            company: 'TechnoServ SA',
-            contact: 'Jean Dupont',
-            email: 'contact@technoserv.ch',
-            phone: '+41 22 123 45 67',
-            address: 'Rue de la Corraterie 15',
-            city: 'Genève',
-            postal: '1204',
-            country: 'Suisse',
-            vat: 'CHE-123.456.789',
-            is_active: true
-          }
-        ];
-        
-        setClients(clientsData);
-        console.log('Clientes carregados (exemplo):', clientsData);
-      } catch (error) {
-        console.error('Erreur lors du chargement des clients:', error);
-        setError(`Erreur lors du chargement des clients: ${error.message}`);
-      }
+      const clientsData = await apiService.getClients();
+      setClients(clientsData);
+      console.log('Clientes carregados:', clientsData);
     } catch (error) {
       console.error('Erreur lors du chargement des clients:', error);
       setError(`Erreur lors du chargement des clients: ${error.message}`);
@@ -113,7 +70,7 @@ export default function Clients() {
     const searchLower = searchTerm.toLowerCase();
     return (
       client.company?.toLowerCase().includes(searchLower) ||
-      client.contact?.toLowerCase().includes(searchLower) ||
+      client.contact_person?.toLowerCase().includes(searchLower) ||
       client.email?.toLowerCase().includes(searchLower)
     );
   });
@@ -122,15 +79,14 @@ export default function Clients() {
   const resetForm = () => {
     setFormData({
       company: '',
-      contact: '',
+      contact_person: '',
       email: '',
       phone: '',
       address: '',
       city: '',
-      postal: '',
+      postal_code: '',
       country: 'Suisse',
-      vat: '',
-      is_active: true
+      category: 'facture'
     });
     setFormErrors({});
   };
@@ -149,15 +105,14 @@ export default function Clients() {
     setCurrentClient(client);
     setFormData({
       company: client.company || '',
-      contact: client.contact || '',
+      contact_person: client.contact_person || '',
       email: client.email || '',
       phone: client.phone || '',
       address: client.address || '',
       city: client.city || '',
-      postal: client.postal || '',
+      postal_code: client.postal_code || '',
       country: client.country || 'Suisse',
-      vat: client.vat || '',
-      is_active: client.is_active !== false
+      category: client.category || 'facture'
     });
     setFormErrors({});
     setShowModal(true);
@@ -215,37 +170,14 @@ export default function Clients() {
     setIsLoading(true);
     try {
       if (formMode === 'create') {
-        // TODO: Substituir por SQLite - Obter o usuário atual
-        // const { data: { user } } = await auth.getUser();
-        // if (!user) {
-        //   throw new Error('Utilisateur non authentifié');
-        // }
-        
-        // TODO: Substituir por SQLite - Adicionar user_id e status aos dados
-        const clientData = {
+        const newClient = await apiService.createClient({
           ...formData,
-          user_id: 'default_user', // TODO: Implementar com SQLite
-          status: 'active'
-        };
-        
-        // TODO: Substituir por SQLite - Implementar criação de cliente
-        // const { data, error } = await supabase
-        //   .from('clients')
-        //   .insert([clientData])
-        //   .select();
-          
-        // if (error) throw error;
-        console.log('Client créé avec succès (exemplo):', clientData);
+          user_id: 'user_1703671234567' // Mock user ID
+        });
+        console.log('Client créé avec succès:', newClient);
       } else {
-        // TODO: Substituir por SQLite - Implementar atualização de cliente
-        // const { data, error } = await supabase
-        //   .from('clients')
-        //   .update(formData)
-        //   .eq('id', currentClient.id)
-        //   .select();
-          
-        // if (error) throw error;
-        console.log('Client mis à jour avec succès (exemplo):', formData);
+        const updatedClient = await apiService.updateClient(currentClient.id, formData);
+        console.log('Client mis à jour avec succès:', updatedClient);
       }
       
       closeModal();
@@ -263,17 +195,20 @@ export default function Clients() {
     openCreateModal();
   };
 
-  // Função para corrigir carregamento usando a versão fixed
-  const handleFixClients = async () => {
+  // Deletar cliente
+  const handleDeleteClient = async (client) => {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer le client ${client.company} ?`)) {
+      return;
+    }
+    
     setIsLoading(true);
-    setError(null);
     try {
-      const clientsData = await loadClientsFixed();
-      setClients(clientsData);
-      console.log('✅ Clientes carregados (versão corrigida):', clientsData);
+      await apiService.deleteClient(client.id);
+      console.log('Client supprimé avec succès:', client.company);
+      await loadClients();
     } catch (error) {
-      console.error('❌ Erro na versão corrigida:', error);
-      setError(`Erro: ${error.message}`);
+      console.error('Erreur lors de la suppression:', error);
+      setError(`Erreur lors de la suppression: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -287,11 +222,10 @@ export default function Clients() {
     openEditModal(client);
   };
 
-  const handleDeleteClient = async (client) => {
+  const handleDeleteClientOld = async (client) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce client ?')) {
       try {
-        // TODO: Substituir por SQLite - Implementar exclusão de cliente
-        // const { error } = await supabase
+        // TODO: Função duplicada - remover após limpeza
         //   .from('clients')
         //   .delete()
         //   .eq('id', client.id);
