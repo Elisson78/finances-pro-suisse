@@ -83,7 +83,7 @@ export const authService = {
     });
 
     if (error) throw error;
-    return data;
+    return { user: data.user, session: (data as any).session || null };
   },
 
   // Logout de usuário
@@ -118,12 +118,25 @@ function createMockSupabaseClient() {
       signOut: async () => ({ error: null }),
       getUser: async () => ({ data: { user: null }, error: null }),
       getSession: async () => ({ data: { session: null }, error: null }),
+      onAuthStateChange: (callback: any) => {
+        // Mock auth state change
+        return { data: { subscription: { unsubscribe: () => {} } } };
+      },
     },
-    from: () => ({
-      insert: async () => ({ error: null }),
-      select: async () => ({ data: [], error: null }),
-      update: async () => ({ data: [], error: null }),
+    from: (table: string) => ({
+      insert: async (data: any) => ({ data: null, error: null }),
+      select: async (columns?: string) => ({ data: [], error: null }),
+      update: async (data: any) => ({ data: [], error: null }),
       delete: async () => ({ data: [], error: null }),
-    }),
+      eq: (column: string, value: any) => ({
+        select: async (columns?: string) => ({ data: [], error: null }),
+        update: async (data: any) => ({ data: [], error: null }),
+        delete: async () => ({ data: [], error: null }),
+        eq: (col: string, val: any) => ({ data: [], error: null }),
+        order: (column: string, options?: any) => ({ data: [], error: null }),
+      }),
+      order: (column: string, options?: any) => ({ data: [], error: null }),
+    }) as any,
+    rpc: (func: string, params?: any) => Promise.resolve({ data: null, error: null }),
   };
 }

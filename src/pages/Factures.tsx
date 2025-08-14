@@ -140,7 +140,7 @@ const Factures = () => {
         // Usar a função corrigida que filtra clientes pelo usuário atual
         const clientsData = await loadClientsFixed();
         // Garantir que temos apenas os campos necessários
-        setClients(clientsData.map(client => ({
+        setClients(clientsData.map((client: any) => ({
           id: client.id,
           company: client.company
         })));
