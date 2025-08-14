@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../services/supabase';
 import { PDFService } from '../services/pdf.service';
-import { loadClientsFixed } from '../utils/fixClientsLoad';
+import { loadClientsFixed } from '../types/global';
 
 // Define tipos para os artigos e faturas
 interface Article {

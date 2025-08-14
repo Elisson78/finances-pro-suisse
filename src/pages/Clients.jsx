@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { supabase } from "../services/supabase";
 import { setupClientsRPC } from "../utils/setupRPC";
 import { testClientsLoad, testCreateClient } from "../utils/testClients";
 import { diagnosticClients, createTestClient } from "../utils/diagnosticClients";
@@ -63,39 +62,45 @@ export default function Clients() {
     setIsLoading(true);
     setError(null);
     try {
-      // Primeiro, tentar usar RPC para buscar clientes
-      const { data: { user } } = await supabase.auth.getUser();
+      // TODO: Substituir por SQLite - Primeiro, tentar usar RPC para buscar clientes
+      // const { data: { user } } = await auth.getUser();
       
-      let clientsData = null;
+      // TODO: Substituir por SQLite - Implementar busca de clientes
+      let clientsData = [];
       let clientsError = null;
       
-      if (user) {
-        // Tentar usar RPC fetch_all_clients
-        const { data: rpcData, error: rpcError } = await supabase
-          .rpc('fetch_all_clients', { user_uuid: user.id });
+      try {
+        // TODO: Implementar com SQLite
+        // const user = await sqliteService.getCurrentUser();
+        // if (user) {
+        //   clientsData = await sqliteService.getClients(user.id);
+        // } else {
+        //   throw new Error('Utilisateur non authentifié');
+        // }
         
-        if (rpcError) {
-          console.log('RPC não disponível, usando consulta direta:', rpcError.message);
-          setShowRPCInstructions(true);
-          // Fallback: buscar diretamente da tabela
-          const { data: directData, error: directError } = await supabase
-            .from('clients')
-            .select('*')
-            .eq('user_id', user.id);
-          
-          clientsData = directData;
-          clientsError = directError;
-        } else {
-          clientsData = rpcData;
-          clientsError = rpcError;
-        }
-      } else {
-        throw new Error('Utilisateur non authentifié');
+        // Por enquanto, usar dados de exemplo
+        clientsData = [
+          {
+            id: 'client_1',
+            company: 'TechnoServ SA',
+            contact: 'Jean Dupont',
+            email: 'contact@technoserv.ch',
+            phone: '+41 22 123 45 67',
+            address: 'Rue de la Corraterie 15',
+            city: 'Genève',
+            postal: '1204',
+            country: 'Suisse',
+            vat: 'CHE-123.456.789',
+            is_active: true
+          }
+        ];
+        
+        setClients(clientsData);
+        console.log('Clientes carregados (exemplo):', clientsData);
+      } catch (error) {
+        console.error('Erreur lors du chargement des clients:', error);
+        setError(`Erreur lors du chargement des clients: ${error.message}`);
       }
-        
-      if (clientsError) throw clientsError;
-      setClients(clientsData || []);
-      console.log('Clientes carregados:', clientsData);
     } catch (error) {
       console.error('Erreur lors du chargement des clients:', error);
       setError(`Erreur lors du chargement des clients: ${error.message}`);
@@ -210,35 +215,37 @@ export default function Clients() {
     setIsLoading(true);
     try {
       if (formMode === 'create') {
-        // Obter o usuário atual
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          throw new Error('Utilisateur non authentifié');
-        }
+        // TODO: Substituir por SQLite - Obter o usuário atual
+        // const { data: { user } } = await auth.getUser();
+        // if (!user) {
+        //   throw new Error('Utilisateur non authentifié');
+        // }
         
-        // Adicionar user_id e status aos dados
+        // TODO: Substituir por SQLite - Adicionar user_id e status aos dados
         const clientData = {
           ...formData,
-          user_id: user.id,
+          user_id: 'default_user', // TODO: Implementar com SQLite
           status: 'active'
         };
         
-        const { data, error } = await supabase
-          .from('clients')
-          .insert([clientData])
-          .select();
+        // TODO: Substituir por SQLite - Implementar criação de cliente
+        // const { data, error } = await supabase
+        //   .from('clients')
+        //   .insert([clientData])
+        //   .select();
           
-        if (error) throw error;
-        console.log('Client créé avec succès:', data);
+        // if (error) throw error;
+        console.log('Client créé avec succès (exemplo):', clientData);
       } else {
-        const { data, error } = await supabase
-          .from('clients')
-          .update(formData)
-          .eq('id', currentClient.id)
-          .select();
+        // TODO: Substituir por SQLite - Implementar atualização de cliente
+        // const { data, error } = await supabase
+        //   .from('clients')
+        //   .update(formData)
+        //   .eq('id', currentClient.id)
+        //   .select();
           
-        if (error) throw error;
-        console.log('Client mis à jour avec succès:', data);
+        // if (error) throw error;
+        console.log('Client mis à jour avec succès (exemplo):', formData);
       }
       
       closeModal();
@@ -283,12 +290,14 @@ export default function Clients() {
   const handleDeleteClient = async (client) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce client ?')) {
       try {
-        const { error } = await supabase
-          .from('clients')
-          .delete()
-          .eq('id', client.id);
+        // TODO: Substituir por SQLite - Implementar exclusão de cliente
+        // const { error } = await supabase
+        //   .from('clients')
+        //   .delete()
+        //   .eq('id', client.id);
           
-        if (error) throw error;
+        // if (error) throw error;
+        console.log('Client supprimé (exemplo):', client.id);
         await loadClients();
       } catch (error) {
         console.error('Erreur lors de la suppression:', error);
