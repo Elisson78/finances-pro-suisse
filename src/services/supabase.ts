@@ -6,10 +6,13 @@ const supabaseAnonKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
 
 // Verificação para garantir que as variáveis de ambiente estão configuradas
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Supabase URL or Anon Key is missing. Please check your environment variables.');
+  console.warn('Supabase URL or Anon Key is missing. Using mock mode for development.');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Criar cliente Supabase ou mock se não configurado
+export const supabase = supabaseUrl && supabaseAnonKey 
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : createMockSupabaseClient();
 
 // Tipos para autenticação
 export type SignUpCredentials = {
@@ -103,3 +106,24 @@ export const authService = {
     return data.session;
   },
 };
+
+// Mock Supabase Client para desenvolvimento sem configuração
+function createMockSupabaseClient() {
+  console.log('Running in mock mode - Supabase not configured');
+  
+  return {
+    auth: {
+      signUp: async () => ({ data: { user: null }, error: null }),
+      signInWithPassword: async () => ({ data: { user: null }, error: null }),
+      signOut: async () => ({ error: null }),
+      getUser: async () => ({ data: { user: null }, error: null }),
+      getSession: async () => ({ data: { session: null }, error: null }),
+    },
+    from: () => ({
+      insert: async () => ({ error: null }),
+      select: async () => ({ data: [], error: null }),
+      update: async () => ({ data: [], error: null }),
+      delete: async () => ({ data: [], error: null }),
+    }),
+  };
+}
