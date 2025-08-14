@@ -1,4 +1,4 @@
-import Database from 'better-sqlite3';
+import sqlite3 from 'sqlite3';
 import path from 'path';
 
 // Interface para tipos de dados
@@ -61,7 +61,7 @@ export interface Service {
 }
 
 class SQLiteService {
-  private db!: Database.Database;
+  private db!: sqlite3.Database;
   private dbPath: string;
 
   constructor() {
@@ -72,11 +72,20 @@ class SQLiteService {
 
   private initDatabase() {
     try {
-      this.db = new Database(this.dbPath);
-      this.db.pragma('journal_mode = WAL');
-      this.createTables();
-      this.insertSampleData();
-      console.log('SQLite database initialized successfully');
+      this.db = new sqlite3.Database(this.dbPath, (err) => {
+        if (err) {
+          console.error('Error opening database:', err);
+          return;
+        }
+        
+        this.db.run('PRAGMA journal_mode = WAL', (err) => {
+          if (err) console.error('Error setting WAL mode:', err);
+        });
+        
+        this.createTables();
+        this.insertSampleData();
+        console.log('SQLite database initialized successfully');
+      });
     } catch (error) {
       console.error('Error initializing SQLite database:', error);
     }
@@ -84,7 +93,7 @@ class SQLiteService {
 
   private createTables() {
     // Tabela de usuários
-    this.db.exec(`
+    this.db.run(`
       CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
         email TEXT UNIQUE NOT NULL,
@@ -94,10 +103,12 @@ class SQLiteService {
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
       )
-    `);
+    `, (err) => {
+      if (err) console.error('Error creating users table:', err);
+    });
 
     // Tabela de clientes
-    this.db.exec(`
+    this.db.run(`
       CREATE TABLE IF NOT EXISTS clients (
         id TEXT PRIMARY KEY,
         company TEXT NOT NULL,
@@ -114,10 +125,12 @@ class SQLiteService {
         updated_at TEXT NOT NULL,
         FOREIGN KEY (user_id) REFERENCES users (id)
       )
-    `);
+    `, (err) => {
+      if (err) console.error('Error creating clients table:', err);
+    });
 
     // Tabela de faturas
-    this.db.exec(`
+    this.db.run(`
       CREATE TABLE IF NOT EXISTS factures (
         id TEXT PRIMARY KEY,
         numero_facture TEXT UNIQUE NOT NULL,
@@ -136,10 +149,12 @@ class SQLiteService {
         FOREIGN KEY (client_id) REFERENCES clients (id),
         FOREIGN KEY (user_id) REFERENCES users (id)
       )
-    `);
+    `, (err) => {
+      if (err) console.error('Error creating factures table:', err);
+    });
 
     // Tabela de serviços
-    this.db.exec(`
+    this.db.run(`
       CREATE TABLE IF NOT EXISTS services (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
@@ -151,79 +166,96 @@ class SQLiteService {
         updated_at TEXT NOT NULL,
         FOREIGN KEY (user_id) REFERENCES users (id)
       )
-    `);
+    `, (err) => {
+      if (err) console.error('Error creating services table:', err);
+    });
   }
 
   private insertSampleData() {
-    // Inserir usuário de exemplo
-    const userExists = this.db.prepare('SELECT id FROM users WHERE email = ?').get('admin@finances.ch');
-    if (!userExists) {
-      const userId = 'user_' + Date.now();
-      this.db.prepare(`
-        INSERT INTO users (id, email, full_name, company_name, role, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run(userId, 'admin@finances.ch', 'Admin Finances', 'Finances Pro Suisse', 'admin', 
-              new Date().toISOString(), new Date().toISOString());
+    // Verificar se usuário já existe
+    this.db.get('SELECT id FROM users WHERE email = ?', ['admin@finances.ch'], (err, row) => {
+      if (err) {
+        console.error('Error checking user existence:', err);
+        return;
+      }
+      
+      if (!row) {
+        const userId = 'user_' + Date.now();
+        this.db.run(`
+          INSERT INTO users (id, email, full_name, company_name, role, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+        `, [userId, 'admin@finances.ch', 'Admin Finances', 'Finances Pro Suisse', 'admin', 
+            new Date().toISOString(), new Date().toISOString()], (err) => {
+          if (err) {
+            console.error('Error inserting user:', err);
+            return;
+          }
+          
+          // Inserir clientes de exemplo
+          const clients = [
+            {
+              company: 'TechnoServ SA',
+              contact_person: 'Jean Dupont',
+              email: 'contact@technoserv.ch',
+              phone: '+41 22 123 45 67',
+              address: 'Rue de la Corraterie 15',
+              city: 'Genève',
+              postal_code: '1204',
+              category: 'facture'
+            },
+            {
+              company: 'Alpine Consulting',
+              contact_person: 'Marie Martin',
+              email: 'info@alpine-consulting.ch',
+              phone: '+41 21 987 65 43',
+              address: 'Avenue de la Gare 25',
+              city: 'Lausanne',
+              postal_code: '1003',
+              category: 'facture'
+            }
+          ];
 
-      // Inserir clientes de exemplo
-      const clients = [
-        {
-          company: 'TechnoServ SA',
-          contact_person: 'Jean Dupont',
-          email: 'contact@technoserv.ch',
-          phone: '+41 22 123 45 67',
-          address: 'Rue de la Corraterie 15',
-          city: 'Genève',
-          postal_code: '1204',
-          category: 'facture'
-        },
-        {
-          company: 'Alpine Consulting',
-          contact_person: 'Marie Martin',
-          email: 'info@alpine-consulting.ch',
-          phone: '+41 21 987 65 43',
-          address: 'Avenue de la Gare 25',
-          city: 'Lausanne',
-          postal_code: '1003',
-          category: 'facture'
-        }
-      ];
-
-      clients.forEach(client => {
-        const clientId = 'client_' + Date.now() + Math.random();
-        this.db.prepare(`
-          INSERT INTO clients (id, company, contact_person, email, phone, address, city, postal_code, category, user_id, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(clientId, client.company, client.contact_person, client.email, client.phone,
+          clients.forEach(client => {
+            const clientId = 'client_' + Date.now() + Math.random();
+            this.db.run(`
+              INSERT INTO clients (id, company, contact_person, email, phone, address, city, postal_code, category, user_id, created_at, updated_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `, [clientId, client.company, client.contact_person, client.email, client.phone,
                 client.address, client.city, client.postal_code, client.category, userId,
-                new Date().toISOString(), new Date().toISOString());
-      });
+                new Date().toISOString(), new Date().toISOString()], (err) => {
+              if (err) console.error('Error inserting client:', err);
+            });
+          });
 
-      // Inserir serviços de exemplo
-      const services = [
-        {
-          name: 'Consultoria Financeira',
-          description: 'Serviços de consultoria em gestão financeira',
-          price: 150.00,
-          category: 'consultoria'
-        },
-        {
-          name: 'Auditoria Contábil',
-          description: 'Auditoria e revisão de contas',
-          price: 200.00,
-          category: 'auditoria'
-        }
-      ];
+          // Inserir serviços de exemplo
+          const services = [
+            {
+              name: 'Consultoria Financeira',
+              description: 'Serviços de consultoria em gestão financeira',
+              price: 150.00,
+              category: 'consultoria'
+            },
+            {
+              name: 'Auditoria Contábil',
+              description: 'Auditoria e revisão de contas',
+              price: 200.00,
+              category: 'auditoria'
+            }
+          ];
 
-      services.forEach(service => {
-        const serviceId = 'service_' + Date.now() + Math.random();
-        this.db.prepare(`
-          INSERT INTO services (id, name, description, price, category, user_id, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(serviceId, service.name, service.description, service.price, service.category, userId,
-                new Date().toISOString(), new Date().toISOString());
-      });
-    }
+          services.forEach(service => {
+            const serviceId = 'service_' + Date.now() + Math.random();
+            this.db.run(`
+              INSERT INTO services (id, name, description, price, category, user_id, created_at, updated_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            `, [serviceId, service.name, service.description, service.price, service.category, userId,
+                new Date().toISOString(), new Date().toISOString()], (err) => {
+              if (err) console.error('Error inserting service:', err);
+            });
+          });
+        });
+      }
+    });
   }
 
   // Métodos para usuários
