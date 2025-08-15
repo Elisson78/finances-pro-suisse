@@ -2,21 +2,23 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files first for better caching
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install all dependencies
+RUN npm install
 
-# Copy application code
+# Copy all application files
 COPY . .
 
-# Expose port
-EXPOSE 5000
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=80
+ENV DATABASE_URL=postgres://postgres:lYPS50GDgjiA6QEL0REU142DUG0qHefqqGcGo8I2njYiBkpxlSuuhMv8Lpv1K2VY@91.107.237.159:5432/db_finance
+ENV JWT_SECRET=finances-pro-suisse-secret-key-production
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:5000/ || exit 1
+# Expose port 80 (Coolify expects this)
+EXPOSE 80
 
 # Start the application
-CMD ["npm", "start"]
+CMD ["node", "server.js"]
