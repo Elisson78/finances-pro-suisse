@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { PDFService } from '../services/pdf.service';
-import apiService, { Facture } from '../services/api.service';
 
 interface NewFactureData {
   client_name: string;
@@ -9,6 +7,15 @@ interface NewFactureData {
   due_date: string;
   total_amount: number;
   status: 'pending' | 'paid' | 'overdue';
+}
+
+interface Facture {
+  id: string;
+  invoice_number: string;
+  description: string;
+  date: string;
+  total_amount: number;
+  status: string;
 }
 
 export default function Factures() {
@@ -30,8 +37,18 @@ export default function Factures() {
   useEffect(() => {
     async function fetchFactures() {
       try {
-        const data = await apiService.getFactures();
-        setFactures(data);
+        const response = await fetch('/api/factures', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          setFactures(result.data || []);
+        } else {
+          throw new Error('Erro ao buscar faturas');
+        }
       } catch (err) {
         console.error('Erro ao buscar faturas:', err);
         setError('Erro ao carregar faturas');
@@ -81,8 +98,15 @@ export default function Factures() {
 
       if (response.ok) {
         // Recarregar faturas
-        const data = await apiService.getFactures();
-        setFactures(data);
+        const newResponse = await fetch('/api/factures', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        if (newResponse.ok) {
+          const result = await newResponse.json();
+          setFactures(result.data || []);
+        }
         
         // Resetar formulário
         setNewFacture({
@@ -106,20 +130,10 @@ export default function Factures() {
     }
   };
 
-  // Gerar PDF
+  // Gerar PDF (simplificado)
   const handleGeneratePDF = async (facture: Facture) => {
     try {
-      await PDFService.generateInvoicePDF({
-        numero_facture: facture.numero_facture,
-        client_name: facture.client_name,
-        date: facture.date,
-        echeance: facture.echeance,
-        articles: facture.articles,
-        subtotal: facture.subtotal,
-        tva: facture.tva,
-        total: facture.total,
-        statut: facture.status
-      });
+      alert(`PDF da fatura ${facture.invoice_number} seria gerado aqui.`);
     } catch (err) {
       console.error('Erro ao gerar PDF:', err);
     }
@@ -157,6 +171,12 @@ export default function Factures() {
       {factures.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-500">Nenhuma fatura encontrada</p>
+          <button 
+            onClick={() => setShowModal(true)}
+            className="mt-4 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+          >
+            Criar Primeira Fatura
+          </button>
         </div>
       ) : (
         <div className="grid gap-6">
@@ -164,14 +184,14 @@ export default function Factures() {
             <div key={facture.id} className="bg-white shadow-md rounded-lg p-6">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="text-lg font-semibold">{facture.numero_facture}</h3>
-                  <p className="text-gray-600">{facture.client_name}</p>
+                  <h3 className="text-lg font-semibold">{facture.invoice_number}</h3>
+                  <p className="text-gray-600">{facture.description}</p>
                   <p className="text-sm text-gray-500">
                     Data: {new Date(facture.date).toLocaleDateString()}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold">CHF {facture.total.toFixed(2)}</p>
+                  <p className="text-2xl font-bold">CHF {facture.total_amount?.toFixed(2)}</p>
                   <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
                     facture.status === 'paid' ? 'bg-green-100 text-green-800' :
                     facture.status === 'overdue' ? 'bg-red-100 text-red-800' :
@@ -183,28 +203,16 @@ export default function Factures() {
                 </div>
               </div>
               
-              <div className="border-t pt-4">
-                <h4 className="font-medium mb-2">Artigos:</h4>
-                <ul className="space-y-1">
-                  {facture.articles.map((article, index) => (
-                    <li key={index} className="flex justify-between text-sm">
-                      <span>{article.description} (x{article.qty})</span>
-                      <span>CHF {(article.price * article.qty).toFixed(2)}</span>
-                    </li>
-                  ))}
-                </ul>
-                  </div>
-              
               <div className="flex justify-end mt-4">
                 <button
                   onClick={() => handleGeneratePDF(facture)}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
                 >
                   Gerar PDF
-                          </button>
-                      </div>
-                    </div>
-                  ))}
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
