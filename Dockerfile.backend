@@ -1,0 +1,30 @@
+# Dockerfile para o backend Node.js
+FROM node:20-alpine
+
+# Criar diretório da aplicação
+WORKDIR /app
+
+# Instalar dependências do sistema
+RUN apk add --no-cache python3 make g++
+
+# Copiar package files
+COPY package*.json ./
+
+# Instalar dependências
+RUN npm ci --only=production
+
+# Copiar arquivos da aplicação
+COPY . .
+
+# Criar diretório para dados (se necessário)
+RUN mkdir -p /app/data
+
+# Expor porta
+EXPOSE 5000
+
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node healthcheck.js || exit 1
+
+# Comando para iniciar a aplicação
+CMD ["node", "server.js"]
