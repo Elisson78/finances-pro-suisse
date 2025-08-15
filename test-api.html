@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste API - FinancesPro Suisse</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        pre { background-color: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste da API - FinancesPro Suisse</h1>
+    
+    <div class="test-section info">
+        <h3>📋 Informações do Teste</h3>
+        <p>Este arquivo testa a API de autenticação para identificar problemas.</p>
+        <p><strong>URL da API:</strong> <span id="api-url">Carregando...</span></p>
+    </div>
+
+    <div class="test-section">
+        <h3>🔐 Teste de Login</h3>
+        <p>Testa o endpoint de login da API.</p>
+        <button onclick="testLogin()">Testar Login</button>
+        <div id="login-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>👤 Teste de Usuário Atual</h3>
+        <p>Testa o endpoint /auth/me para obter dados do usuário.</p>
+        <button onclick="testGetCurrentUser()">Testar /auth/me</button>
+        <div id="me-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>💾 Verificar LocalStorage</h3>
+        <p>Verifica o que está armazenado no localStorage.</p>
+        <button onclick="checkLocalStorage()">Verificar LocalStorage</button>
+        <div id="localstorage-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🧹 Limpar Dados</h3>
+        <p>Limpa todos os dados de autenticação.</p>
+        <button onclick="clearAuthData()">Limpar Dados</button>
+        <div id="clear-result"></div>
+    </div>
+
+    <script>
+        // Configuração da API
+        const API_BASE_URL = window.location.origin + '/api';
+        document.getElementById('api-url').textContent = API_BASE_URL;
+
+        // Teste de Login
+        async function testLogin() {
+            const resultDiv = document.getElementById('login-result');
+            resultDiv.innerHTML = '<p>🔄 Testando login...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'empresa@gmail.com',
+                        password: '123456'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ Login bem-sucedido!</h4>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                    
+                    // Salvar dados no localStorage para teste
+                    if (data.data && data.data.token) {
+                        localStorage.setItem('authToken', data.data.token);
+                        localStorage.setItem('user', JSON.stringify(data.data.user));
+                        console.log('🔍 Dados salvos no localStorage:', {
+                            token: data.data.token,
+                            user: data.data.user
+                        });
+                    }
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>❌ Erro no login</h4>
+                            <p><strong>Status:</strong> ${response.status}</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Erro de conexão</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Teste de /auth/me
+        async function testGetCurrentUser() {
+            const resultDiv = document.getElementById('me-result');
+            const token = localStorage.getItem('authToken');
+            
+            if (!token) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Token não encontrado</h4>
+                        <p>Faça login primeiro para obter um token.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            resultDiv.innerHTML = '<p>🔄 Testando /auth/me...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/me`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h4>✅ /auth/me funcionando!</h4>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h4>❌ Erro em /auth/me</h4>
+                            <p><strong>Status:</strong> ${response.status}</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Erro de conexão</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Verificar LocalStorage
+        function checkLocalStorage() {
+            const resultDiv = document.getElementById('localstorage-result');
+            const token = localStorage.getItem('authToken');
+            const user = localStorage.getItem('user');
+            
+            resultDiv.innerHTML = `
+                <div class="info">
+                    <h4>💾 Estado do LocalStorage</h4>
+                    <p><strong>Token:</strong> ${token ? '✅ Presente (' + token.length + ' chars)' : '❌ Ausente'}</p>
+                    <p><strong>Usuário:</strong> ${user ? '✅ Presente' : '❌ Ausente'}</p>
+                    ${user ? `<pre>${user}</pre>` : ''}
+                </div>
+            `;
+        }
+
+        // Limpar dados de autenticação
+        function clearAuthData() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+            
+            const resultDiv = document.getElementById('clear-result');
+            resultDiv.innerHTML = `
+                <div class="success">
+                    <h4>🧹 Dados limpos!</h4>
+                    <p>Token e usuário foram removidos do localStorage.</p>
+                </div>
+            `;
+        }
+
+        // Verificar LocalStorage ao carregar a página
+        window.onload = function() {
+            checkLocalStorage();
+        };
+    </script>
+</body>
+</html>

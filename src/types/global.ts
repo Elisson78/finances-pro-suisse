@@ -6,13 +6,7 @@ export interface User {
   full_name: string;
   company_name: string;
   role: string;
-  account_type?: string;
-  user_metadata?: {
-    full_name?: string;
-    company_name?: string;
-    role?: string;
-    account_type?: string;
-  };
+  account_type: 'entreprise' | 'administrateur';
 }
 
 export interface Session {

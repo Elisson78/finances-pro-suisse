@@ -40,7 +40,16 @@ const LoginPage: React.FC = () => {
       console.log('Tentando fazer login...', formData.email);
       const result = await apiService.login(formData.email, formData.password);
       console.log('Login bem-sucedido:', result);
-      navigate(from, { replace: true });
+      
+      // Redirecionar baseado no tipo de conta
+      let redirectPath = '/dashboard'; // Padrão para empresas
+      
+      if (result.user.account_type === 'administrateur') {
+        redirectPath = '/dashboard-admin';
+      }
+      
+      console.log(`Redirecionando usuário ${result.user.account_type} para: ${redirectPath}`);
+      navigate(redirectPath, { replace: true });
     } catch (err: any) {
       console.error('Login error:', err);
       setError(err.response?.data?.message || err.message || 'Erreur de connexion. Veuillez vérifier vos informations.');

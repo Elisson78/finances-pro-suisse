@@ -31,10 +31,9 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, requiredRole }) =
   // Verificar se o usuário é administrador para rotas de admin
   if (isAdminRoute) {
     console.log('Verificando permissão para rota de admin:', user);
-    console.log('Metadados do usuário:', user.user_metadata);
-    console.log('Papel do usuário:', user.user_metadata?.role);
+    console.log('Tipo de conta do usuário:', user.account_type);
     
-    if (user.user_metadata?.role !== 'admin') {
+    if (user.account_type !== 'administrateur') {
       console.log('Usuário não é administrador, redirecionando para dashboard padrão');
       return <Navigate to="/dashboard" replace />;
     } else {

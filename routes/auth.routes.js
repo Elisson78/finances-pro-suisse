@@ -57,10 +57,11 @@ router.post('/register', [
   body('email').isEmail().withMessage('Email válido é obrigatório'),
   body('password').isLength({ min: 8 }).withMessage('Senha deve ter pelo menos 8 caracteres'),
   body('full_name').notEmpty().withMessage('Nome completo é obrigatório'),
-  body('company').notEmpty().withMessage('Nome da empresa é obrigatório')
+  body('company').notEmpty().withMessage('Nome da empresa é obrigatório'),
+  body('account_type').optional().isIn(['entreprise', 'administrateur']).withMessage('Tipo de conta deve ser entreprise ou administrateur')
 ], handleValidationErrors, async (req, res) => {
   try {
-    const { email, password, full_name, company } = req.body;
+    const { email, password, full_name, company, account_type = 'entreprise' } = req.body;
 
     // Verificar se usuário já existe
     const existingUser = await dbService.get(
@@ -80,8 +81,8 @@ router.post('/register', [
 
     // Criar usuário (usando UUID padrão do PostgreSQL)
     const newUser = await dbService.run(
-      'INSERT INTO users (email, password_hash, full_name, company) VALUES ($1, $2, $3, $4) RETURNING *',
-      [email, passwordHash, full_name, company]
+      'INSERT INTO users (email, password_hash, full_name, company, account_type) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [email, passwordHash, full_name, company, account_type]
     );
 
     // Gerar JWT
@@ -89,7 +90,7 @@ router.post('/register', [
       { 
         id: newUser.id, 
         email: newUser.email,
-        role: 'user'
+        role: newUser.account_type === 'administrateur' ? 'admin' : 'user'
       },
       JWT_SECRET,
       { expiresIn: '24h' }
@@ -101,7 +102,8 @@ router.post('/register', [
       email: newUser.email,
       full_name: newUser.full_name,
       company_name: newUser.company,
-      role: 'user',
+      account_type: newUser.account_type || 'entreprise',
+      role: newUser.account_type === 'administrateur' ? 'admin' : 'user',
       created_at: newUser.created_at
     };
 
@@ -129,15 +131,21 @@ router.post('/login', [
   body('password').notEmpty().withMessage('Senha é obrigatória')
 ], handleValidationErrors, async (req, res) => {
   try {
+    console.log('🔍 Backend /auth/login - Iniciando login...');
     const { email, password } = req.body;
+    console.log('🔍 Backend /auth/login - Email recebido:', email);
 
     // Buscar usuário
+    console.log('🔍 Backend /auth/login - Buscando usuário no banco...');
     const user = await dbService.get(
       'SELECT * FROM users WHERE email = $1',
       [email]
     );
 
+    console.log('🔍 Backend /auth/login - Usuário encontrado no banco:', user ? 'Sim' : 'Não');
+
     if (!user) {
+      console.log('❌ Backend /auth/login - Usuário não encontrado');
       return res.status(401).json({
         status: 'error',
         message: 'Email ou senha incorretos'
@@ -145,8 +153,12 @@ router.post('/login', [
     }
 
     // Verificar senha
+    console.log('🔍 Backend /auth/login - Verificando senha...');
     const passwordValid = await bcrypt.compare(password, user.password_hash);
+    console.log('🔍 Backend /auth/login - Senha válida:', passwordValid);
+    
     if (!passwordValid) {
+      console.log('❌ Backend /auth/login - Senha inválida');
       return res.status(401).json({
         status: 'error',
         message: 'Email ou senha incorretos'
@@ -154,11 +166,12 @@ router.post('/login', [
     }
 
     // Gerar JWT
+    console.log('🔍 Backend /auth/login - Gerando JWT...');
     const token = jwt.sign(
       { 
         id: user.id, 
         email: user.email,
-        role: 'user'
+        role: user.account_type === 'administrateur' ? 'admin' : 'user'
       },
       JWT_SECRET,
       { expiresIn: '24h' }
@@ -170,9 +183,17 @@ router.post('/login', [
       email: user.email,
       full_name: user.full_name,
       company_name: user.company,
-      role: 'user',
+      account_type: user.account_type || 'entreprise',
+      role: user.account_type === 'administrateur' ? 'admin' : 'user',
       created_at: user.created_at
     };
+
+    console.log('🔍 Backend /auth/login - Login bem-sucedido, enviando resposta:', {
+      userId: userResponse.id,
+      email: userResponse.email,
+      accountType: userResponse.account_type,
+      hasToken: !!token
+    });
 
     res.json({
       status: 'success',
@@ -184,7 +205,7 @@ router.post('/login', [
     });
 
   } catch (error) {
-    console.error('Error during login:', error);
+    console.error('❌ Backend /auth/login - Erro:', error);
     res.status(500).json({
       status: 'error',
       message: 'Erro interno do servidor'
@@ -195,9 +216,13 @@ router.post('/login', [
 // GET /api/auth/me - Verificar token e obter dados do usuário
 router.get('/me', async (req, res) => {
   try {
+    console.log('🔍 Backend /auth/me - Iniciando verificação...');
     const token = req.header('Authorization')?.replace('Bearer ', '');
     
+    console.log('🔍 Backend /auth/me - Token recebido:', !!token, 'Length:', token?.length);
+    
     if (!token) {
+      console.log('❌ Backend /auth/me - Token não fornecido');
       return res.status(401).json({
         status: 'error',
         message: 'Token de acesso requerido'
@@ -205,15 +230,21 @@ router.get('/me', async (req, res) => {
     }
 
     // Verificar JWT
+    console.log('🔍 Backend /auth/me - Verificando JWT...');
     const decoded = jwt.verify(token, JWT_SECRET);
+    console.log('🔍 Backend /auth/me - JWT decodificado:', decoded);
     
     // Buscar dados atualizados do usuário
+    console.log('🔍 Backend /auth/me - Buscando usuário no banco...');
     const user = await dbService.get(
-      'SELECT id, email, full_name, company, created_at FROM users WHERE id = $1',
+      'SELECT id, email, full_name, company, account_type, created_at FROM users WHERE id = $1',
       [decoded.id]
     );
 
+    console.log('🔍 Backend /auth/me - Usuário encontrado no banco:', user);
+
     if (!user) {
+      console.log('❌ Backend /auth/me - Usuário não encontrado no banco');
       return res.status(401).json({
         status: 'error',
         message: 'Usuário não encontrado'
@@ -225,9 +256,12 @@ router.get('/me', async (req, res) => {
       email: user.email,
       full_name: user.full_name,
       company_name: user.company,
-      role: 'user',
+      account_type: user.account_type || 'entreprise',
+      role: user.account_type === 'administrateur' ? 'admin' : 'user',
       created_at: user.created_at
     };
+
+    console.log('🔍 Backend /auth/me - Resposta preparada:', userResponse);
 
     res.json({
       status: 'success',
@@ -235,7 +269,7 @@ router.get('/me', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error verifying token:', error);
+    console.error('❌ Backend /auth/me - Erro:', error);
     res.status(401).json({
       status: 'error',
       message: 'Token inválido'

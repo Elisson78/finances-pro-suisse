@@ -17,20 +17,34 @@ const authService = {
     const token = localStorage.getItem('authToken');
     const userStr = localStorage.getItem('user');
     
+    console.log('🔍 authService.getSession - Verificando localStorage:', {
+      hasToken: !!token,
+      hasUser: !!userStr,
+      tokenLength: token?.length,
+      userStrLength: userStr?.length
+    });
+    
     if (token && userStr) {
       try {
         const user = JSON.parse(userStr);
+        console.log('🔍 authService.getSession - Usuário parseado:', user);
         return { user, access_token: token };
-      } catch {
+      } catch (error) {
+        console.error('❌ authService.getSession - Erro ao fazer parse do usuário:', error);
         return null;
       }
     }
+    console.log('🔍 authService.getSession - Nenhuma sessão válida encontrada');
     return null;
   },
   getCurrentUser: async (): Promise<User | null> => {
     try {
-      return await apiService.getCurrentUser();
-    } catch {
+      console.log('🔍 authService.getCurrentUser - Chamando API...');
+      const user = await apiService.getCurrentUser();
+      console.log('🔍 authService.getCurrentUser - Resposta da API:', user);
+      return user;
+    } catch (error) {
+      console.error('❌ authService.getCurrentUser - Erro na API:', error);
       return null;
     }
   },
@@ -65,19 +79,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const checkUser = async () => {
       try {
         setIsLoading(true);
+        console.log('🔍 AuthContext - Iniciando verificação de usuário');
         
         // Verificar se há uma sessão ativa
         const session = await authService.getSession();
+        console.log('🔍 AuthContext - Sessão encontrada:', session);
         setSession(session);
         
         if (session) {
+          console.log('🔍 AuthContext - Buscando dados do usuário...');
           const user = await authService.getCurrentUser();
+          console.log('🔍 AuthContext - Usuário carregado:', user);
           setUser(user);
+        } else {
+          console.log('🔍 AuthContext - Nenhuma sessão ativa encontrada');
         }
       } catch (error) {
-        console.error('Error checking auth status:', error);
+        console.error('❌ AuthContext - Erro ao verificar usuário:', error);
       } finally {
         setIsLoading(false);
+        console.log('🔍 AuthContext - Verificação concluída, isLoading:', false);
       }
     };
 

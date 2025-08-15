@@ -23,17 +23,26 @@ const apiClient = axios.create({
 // Interceptor para adicionar token de autenticação
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('authToken');
+  console.log('🔍 Interceptor Request - Token encontrado:', !!token, 'URL:', config.url);
+  
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+    console.log('🔍 Interceptor Request - Token adicionado ao header');
   }
   return config;
 });
 
 // Interceptor para tratamento de erros
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('🔍 Interceptor Response - Sucesso:', response.status, response.config.url);
+    return response;
+  },
   (error) => {
+    console.error('❌ Interceptor Response - Erro:', error.response?.status, error.config?.url, error.message);
+    
     if (error.response?.status === 401) {
+      console.log('🔍 Interceptor Response - Token inválido, fazendo logout...');
       // Token expirado ou inválido
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
@@ -46,18 +55,29 @@ apiClient.interceptors.response.use(
 class ApiService {
   // Autenticação
   async login(email: string, password: string): Promise<{ user: User; token: string }> {
+    console.log('🔍 apiService.login - Iniciando login para:', email);
+    
     const response: AxiosResponse<ApiResponse<{ user: User; token: string }>> = await apiClient.post('/auth/login', {
       email,
       password
     });
     
+    console.log('🔍 apiService.login - Resposta da API:', response.data);
+    
     if (!response.data.data) {
+      console.error('❌ apiService.login - Falha no login: sem dados na resposta');
       throw new Error('Falha no login');
     }
     
     // Salvar token no localStorage
     localStorage.setItem('authToken', response.data.data.token);
     localStorage.setItem('user', JSON.stringify(response.data.data.user));
+    
+    console.log('🔍 apiService.login - Dados salvos no localStorage:', {
+      hasToken: !!localStorage.getItem('authToken'),
+      hasUser: !!localStorage.getItem('user'),
+      user: response.data.data.user
+    });
     
     return response.data.data;
   }
@@ -83,9 +103,19 @@ class ApiService {
 
   async getCurrentUser(): Promise<User | null> {
     try {
+      console.log('🔍 apiService.getCurrentUser - Iniciando chamada...');
       const response: AxiosResponse<ApiResponse<{ user: User }>> = await apiClient.get('/auth/me');
-      return response.data.data?.user || null;
+      console.log('🔍 apiService.getCurrentUser - Resposta da API:', response.data);
+      
+      if (response.data.data?.user) {
+        console.log('🔍 apiService.getCurrentUser - Usuário encontrado:', response.data.data.user);
+        return response.data.data.user;
+      } else {
+        console.log('🔍 apiService.getCurrentUser - Nenhum usuário na resposta');
+        return null;
+      }
     } catch (error) {
+      console.error('❌ apiService.getCurrentUser - Erro na chamada:', error);
       this.logout();
       return null;
     }

@@ -41,12 +41,110 @@ COPY nginx.conf /etc/nginx/nginx.conf
 RUN cp -r build/* /usr/share/nginx/html/
 ```
 
+## Sistema de Redirecionamento Implementado
+
+### Tipos de Usuário
+- **`entreprise`**: Usuários empresa → redirecionados para `/dashboard`
+- **`administrateur`**: Usuários administradores → redirecionados para `/dashboard-admin`
+
+### Funcionalidades
+✅ **Login automático**: Redirecionamento baseado no `account_type` do usuário  
+✅ **Verificação de permissões**: Rotas protegidas por tipo de conta  
+✅ **Estrutura de dados consistente**: Backend retorna `account_type` e `role`  
+✅ **JWT atualizado**: Token inclui informações de role corretas  
+✅ **Exibição do usuário logado**: Nome, email e tipo de conta visíveis  
+✅ **Estados de loading e erro**: Interface responsiva com feedback visual  
+✅ **Logs de debug**: Sistema completo de logs para identificação de problemas  
+
+### Informações do Usuário Exibidas
+- **Nome completo** do usuário logado
+- **Email** do usuário
+- **Tipo de conta** (Empresa ou Administrador)
+- **Nome da empresa** (para usuários empresa)
+- **Iniciais** do usuário no avatar
+- **Status de autenticação** com loading e tratamento de erros
+
+### Arquivos Modificados
+- `routes/auth.routes.js` - Backend retorna `account_type` e `role` + logs de debug
+- `src/pages/LoginPage.tsx` - Redirecionamento baseado no tipo de conta
+- `src/components/common/PrivateRoute.tsx` - Verificação de permissões atualizada
+- `src/pages/DashboardPage.tsx` - Estrutura simplificada + informações do usuário + logs
+- `src/contexts/AuthContext.tsx` - Logs de debug para verificação de usuário
+- `src/services/api.service.ts` - Logs de debug para interceptors e chamadas
+- `src/types/global.ts` - Tipos atualizados e simplificados
+- `test-api.html` - Arquivo de teste para verificar API
+- `DEPLOY.md` - Documentação atualizada
+
+### Como funciona agora:
+1. **Usuário faz login** → Sistema verifica `account_type`
+2. **Se `entreprise`** → Redireciona para `/dashboard`
+3. **Se `administrateur`** → Redireciona para `/dashboard-admin`
+4. **Sistema verifica permissões** → Acesso controlado por tipo de conta
+5. **Informações do usuário** → Exibidas claramente no header
+6. **Logs de debug** → Console mostra todo o processo de autenticação
+7. **Logout** → Limpa dados e redireciona para `/login`
+
+## 🔍 Debug e Solução de Problemas
+
+### Problema: Usuário não aparece após login
+
+**Sintomas:**
+- Login funciona mas informações do usuário não aparecem
+- Dashboard mostra dados padrão em vez dos dados reais
+- Console pode mostrar erros de autenticação
+
+**Soluções:**
+
+1. **Verificar Console do Navegador:**
+   - Abrir DevTools (F12)
+   - Verificar Console para logs de debug
+   - Procurar por erros em vermelho
+
+2. **Testar API Diretamente:**
+   - Abrir `test-api.html` no navegador
+   - Fazer login de teste
+   - Verificar se `/auth/me` retorna dados
+
+3. **Verificar LocalStorage:**
+   - DevTools → Application → Local Storage
+   - Verificar se `authToken` e `user` estão presentes
+
+4. **Logs de Debug Implementados:**
+   - Frontend: Console mostra estado do usuário
+   - Backend: Console mostra processo de autenticação
+   - API: Logs de todas as chamadas
+
+### Comandos de Debug:
+
+```bash
+# Ver logs do backend
+docker logs [container-id]
+
+# Verificar se API está rodando
+curl http://localhost:5000/api/auth/me
+
+# Testar banco de dados
+psql $DATABASE_URL -c "SELECT * FROM users LIMIT 5;"
+```
+
 ## Deploy
 ```bash
 git add .
-git commit -m "Descrição"
+git commit -m "Implementado sistema completo de debug e logs para autenticação"
 git push origin main
 ```
 
 ## Usuários de Teste
-- empresa@gmail.com / 123456
+- empresa@gmail.com / 123456 (tipo: entreprise → /dashboard)
+- admin@finances.ch / [senha] (tipo: administrateur → /dashboard-admin)
+
+## 📋 Checklist de Verificação
+
+- [ ] Backend rodando na porta 5000
+- [ ] Banco PostgreSQL acessível
+- [ ] Tabela `users` com campo `account_type`
+- [ ] Frontend configurado com `VITE_API_URL=/api`
+- [ ] Nginx proxy configurado para `/api`
+- [ ] Logs de debug aparecendo no console
+- [ ] LocalStorage sendo preenchido após login
+- [ ] API `/auth/me` retornando dados do usuário
