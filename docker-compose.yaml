@@ -14,6 +14,8 @@ services:
       - DATABASE_URL=postgres://postgres:lYPS50GDgjiA6QEL0REU142DUG0qHefqqGcGo8I2njYiBkpxlSuuhMv8Lpv1K2VY@91.107.237.159:5432/db_finance
       - JWT_SECRET=finances-pro-suisse-secret-key-production
     restart: unless-stopped
+    healthcheck:
+      disable: true
     networks:
       - coolify
     labels:
