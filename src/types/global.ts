@@ -32,30 +32,6 @@ export interface SignUpCredentials {
   role?: string;
 }
 
-// Mock do Supabase para compatibilidade
-export const supabase = {
-  auth: {
-    getUser: async () => ({ data: { user: null }, error: null }),
-    getSession: async () => ({ data: { session: null }, error: null }),
-    signInWithPassword: async () => ({ data: { user: null, session: null }, error: null }),
-    signUp: async () => ({ data: { user: null, session: null }, error: null }),
-    signOut: async () => ({ error: null }),
-    onAuthStateChange: (callback: any) => ({ data: { subscription: { unsubscribe: () => {} } } }),
-  },
-  from: (table: string) => ({
-    select: async (columns?: string) => ({ data: [], error: null }),
-    insert: async (data: any) => ({ data: null, error: null }),
-    update: async (data: any) => ({ data: [], error: null }),
-    delete: async () => ({ data: [], error: null }),
-    eq: (column: string, value: any) => ({
-      select: async (columns?: string) => ({ data: [], error: null }),
-      update: async (data: any) => ({ data: [], error: null }),
-      delete: async () => ({ data: [], error: null }),
-    }),
-  }),
-  rpc: (func: string, params?: any) => Promise.resolve({ data: null, error: null }),
-};
-
 // Mock do loadClientsFixed
 export const loadClientsFixed = async () => {
   console.log('⚠️ loadClientsFixed não implementado - usando dados de exemplo');
