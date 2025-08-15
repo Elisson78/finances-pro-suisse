@@ -1,55 +1,5 @@
 import { Pool, PoolClient } from 'pg';
-
-// Interfaces para tipagem
-export interface User {
-  id: string;
-  email: string;
-  password_hash: string;
-  full_name: string;
-  company: string;
-  account_type: 'entreprise' | 'administrateur';
-  created_at: Date;
-  updated_at: Date;
-}
-
-export interface Client {
-  id: string;
-  user_id: string;
-  company: string;
-  contact_person: string;
-  email: string;
-  phone: string;
-  address?: string;
-  tax_number?: string;
-  created_at: Date;
-  updated_at: Date;
-}
-
-export interface Service {
-  id: string;
-  user_id: string;
-  name: string;
-  description?: string;
-  unit_price: number;
-  currency: string;
-  created_at: Date;
-  updated_at: Date;
-}
-
-export interface Facture {
-  id: string;
-  user_id: string;
-  client_id?: string;
-  invoice_number: string;
-  description?: string;
-  date: Date;
-  due_date?: Date;
-  status: 'pending' | 'paid' | 'overdue';
-  total_amount: number;
-  currency: string;
-  created_at: Date;
-  updated_at: Date;
-}
+import { User, Client, Service, Facture } from '../types/global';
 
 class PostgreSQLService {
   private pool: Pool;

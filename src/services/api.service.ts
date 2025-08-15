@@ -1,4 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
+import { User, Client, Facture, Service } from '../types/global';
 
 // Base URL da API
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -234,64 +235,7 @@ class ApiService {
   }
 }
 
-// Tipos exportados do backend
-export interface User {
-  id: string;
-  email: string;
-  full_name: string;
-  company_name: string;
-  role: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Client {
-  id: string;
-  company: string;
-  contact_person: string;
-  email: string;
-  phone: string;
-  address: string;
-  city: string;
-  postal_code: string;
-  country: string;
-  category: string;
-  user_id: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Facture {
-  id: string;
-  numero_facture: string;
-  client_id: string;
-  client_name: string;
-  date: string;
-  echeance: string;
-  articles: Array<{
-    description: string;
-    qty: number;
-    price: number;
-  }>;
-  subtotal: number;
-  tva: number;
-  total: number;
-  status: 'paid' | 'pending' | 'overdue';
-  user_id: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface Service {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  category: string;
-  user_id: string;
-  created_at: string;
-  updated_at: string;
-}
+// Tipos importados de types/global.ts
 
 // Instância singleton
 const apiService = new ApiService();

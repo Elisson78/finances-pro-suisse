@@ -1,4 +1,5 @@
 import api from './api';
+import { User } from '../types/global';
 
 interface LoginCredentials {
   email: string;
@@ -10,15 +11,6 @@ interface RegisterData {
   email: string;
   password: string;
   company: string;
-}
-
-interface User {
-  id: string;
-  email: string;
-  full_name: string;
-  company_name: string;
-  role: string;
-  created_at: string;
 }
 
 interface AuthResponse {

@@ -1,16 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, MoreHorizontal, UserPlus, Edit2, Trash2, Eye } from 'lucide-react';
-
-interface User {
-  id: string;
-  email: string;
-  full_name: string;
-  company: string;
-  account_type: 'entreprise' | 'administrateur';
-  created_at: string;
-  last_login?: string;
-  status: 'active' | 'inactive' | 'suspended';
-}
+import { User } from '../../types/global';
 
 const AdminUsers: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -39,6 +29,8 @@ const AdminUsers: React.FC = () => {
               email: 'uzualelisson@gmail.com',
               full_name: 'Elisson Uzual',
               company: 'Tech Solutions',
+              company_name: 'Tech Solutions',
+              role: 'user',
               account_type: 'entreprise',
               created_at: '2025-08-15T10:00:00Z',
               last_login: '2025-08-15T18:30:00Z',
@@ -49,6 +41,8 @@ const AdminUsers: React.FC = () => {
               email: 'admin@finances.ch',
               full_name: 'Admin User',
               company: 'FinancesPro Suisse',
+              company_name: 'FinancesPro Suisse',
+              role: 'admin',
               account_type: 'administrateur',
               created_at: '2025-08-01T09:00:00Z',
               last_login: '2025-08-15T17:45:00Z',
@@ -59,6 +53,8 @@ const AdminUsers: React.FC = () => {
               email: 'empresa@gmail.com',
               full_name: 'João Silva',
               company: 'Silva & Associados',
+              company_name: 'Silva & Associados',
+              role: 'user',
               account_type: 'entreprise',
               created_at: '2025-08-10T14:20:00Z',
               last_login: '2025-08-14T16:15:00Z',
@@ -79,10 +75,10 @@ const AdminUsers: React.FC = () => {
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.company.toLowerCase().includes(searchTerm.toLowerCase());
+                         (user.company && user.company.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesType = filterType === 'all' || user.account_type === filterType;
-    const matchesStatus = filterStatus === 'all' || user.status === filterStatus;
+    const matchesStatus = filterStatus === 'all' || (user.status && user.status === filterStatus);
 
     return matchesSearch && matchesType && matchesStatus;
   });
@@ -235,10 +231,10 @@ const AdminUsers: React.FC = () => {
                     {getTypeBadge(user.account_type)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {getStatusBadge(user.status)}
+                    {user.status && getStatusBadge(user.status)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {formatDate(user.created_at)}
+                    {user.created_at && formatDate(user.created_at)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {user.last_login ? formatDate(user.last_login) : 'Nunca'}

@@ -5,8 +5,14 @@ export interface User {
   email: string;
   full_name: string;
   company_name: string;
+  company?: string; // Para compatibilidade com AdminUsers
   role: string;
   account_type: 'entreprise' | 'administrateur';
+  created_at?: string;
+  updated_at?: string;
+  last_login?: string;
+  status?: 'active' | 'inactive' | 'suspended';
+  password_hash?: string; // Para compatibilidade com postgres.service
 }
 
 export interface Session {
@@ -26,6 +32,62 @@ export interface SignUpCredentials {
   fullName: string;
   companyName: string;
   role?: string;
+}
+
+export interface Client {
+  id: string;
+  company: string;
+  contact_person: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  postal_code: string;
+  country: string;
+  category: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+  tax_number?: string; // Para compatibilidade com postgres.service
+}
+
+export interface Facture {
+  id: string;
+  numero_facture: string;
+  invoice_number?: string; // Para compatibilidade com postgres.service
+  client_id: string;
+  client_name: string;
+  date: string;
+  echeance: string;
+  due_date?: string; // Para compatibilidade com postgres.service
+  articles: Array<{
+    description: string;
+    qty: number;
+    price: number;
+  }>;
+  subtotal: number;
+  tva: number;
+  total: number;
+  total_amount?: number; // Para compatibilidade com postgres.service
+  status: 'paid' | 'pending' | 'overdue';
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+  description?: string; // Para compatibilidade com postgres.service
+  currency?: string; // Para compatibilidade com postgres.service
+}
+
+export interface Service {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  unit_price?: number; // Para compatibilidade com postgres.service
+  category: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+  currency?: string; // Para compatibilidade com postgres.service
 }
 
 // Mock do loadClientsFixed

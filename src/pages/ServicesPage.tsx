@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import apiService, { Service } from '../services/api.service';
+import { Service } from '../types/global';
+import apiService from '../services/api.service';
 
 export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([]);
