@@ -13,12 +13,12 @@ COPY . .
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV PORT=80
+ENV PORT=3000
 ENV DATABASE_URL=postgres://postgres:lYPS50GDgjiA6QEL0REU142DUG0qHefqqGcGo8I2njYiBkpxlSuuhMv8Lpv1K2VY@91.107.237.159:5432/db_finance
 ENV JWT_SECRET=finances-pro-suisse-secret-key-production
 
-# Expose port 80 (Coolify expects this)
-EXPOSE 80
+# Expose port 3000
+EXPOSE 3000
 
 # Start the application
 CMD ["node", "server.js"]
