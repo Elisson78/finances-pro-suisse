@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PDFService } from '../services/pdf.service';
 import apiService, { Facture } from '../services/api.service';
-import { Plus, X, Calendar, DollarSign, FileText } from 'lucide-react';
 
 interface NewFactureData {
   client_name: string;
@@ -150,7 +149,7 @@ export default function Factures() {
           onClick={() => setShowModal(true)}
           className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center gap-2 font-medium"
         >
-          <Plus className="h-5 w-5" />
+          <span className="material-icons">add</span>
           Nova Fatura
         </button>
       </div>
@@ -219,7 +218,7 @@ export default function Factures() {
                 onClick={() => setShowModal(false)}
                 className="text-gray-400 hover:text-gray-600"
               >
-                <X className="h-6 w-6" />
+                <span className="material-icons">close</span>
               </button>
             </div>
 
@@ -241,7 +240,7 @@ export default function Factures() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    <Calendar className="h-4 w-4 inline mr-1" />
+                    <span className="material-icons text-sm inline mr-1">calendar_today</span>
                     Data
                   </label>
                   <input
@@ -268,7 +267,7 @@ export default function Factures() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  <DollarSign className="h-4 w-4 inline mr-1" />
+                  <span className="material-icons text-sm inline mr-1">attach_money</span>
                   Valor Total (CHF)
                 </label>
                 <input
@@ -318,7 +317,7 @@ export default function Factures() {
                     </>
                   ) : (
                     <>
-                      <FileText className="h-4 w-4" />
+                      <span className="material-icons text-sm mr-1">description</span>
                       Criar Fatura
                     </>
                   )}
