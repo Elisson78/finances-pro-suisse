@@ -8,10 +8,10 @@ interface AdminPanelAccessProps {
 }
 
 const AdminPanelAccess: React.FC<AdminPanelAccessProps> = ({ userType, className = '' }) => {
-  // Verificar se o usuário é administrador
-  const isAdmin = userType === 'administrateur';
+  // Verificar se o usuário é administrador DA PLATAFORMA (não da empresa)
+  const isPlatformAdmin = userType === 'administrateur';
 
-  if (!isAdmin) {
+  if (!isPlatformAdmin) {
     return null;
   }
 
