@@ -11,6 +11,14 @@ interface NewFactureData {
   status: 'envoyée' | 'payée' | 'brouillon';
 }
 
+interface InvoiceItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+}
+
 export default function Factures() {
   const [factures, setFactures] = useState<Facture[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,6 +35,76 @@ export default function Factures() {
     total_amount: 0,
     status: 'brouillon'
   });
+  const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([
+    {
+      id: '1',
+      description: 'Description du service',
+      quantity: 1,
+      unitPrice: 0,
+      total: 0
+    }
+  ]);
+
+  // Clientes disponíveis para seleção
+  const availableClients = [
+    'TechnoServ SA',
+    'Alpine Consulting Sàrl',
+    'Swiss Innovation AG',
+    'FinancesPro Suisse',
+    'Consulting Plus'
+  ];
+
+  // Calcular totais
+  const calculateTotals = () => {
+    const subtotal = invoiceItems.reduce((sum, item) => sum + item.total, 0);
+    const tva = subtotal * 0.077; // 7.7% TVA
+    const total = subtotal + tva;
+    
+    setNewFacture(prev => ({
+      ...prev,
+      total_amount: total
+    }));
+    
+    return { subtotal, tva, total };
+  };
+
+  // Atualizar item da fatura
+  const updateInvoiceItem = (id: string, field: keyof InvoiceItem, value: string | number) => {
+    setInvoiceItems(prev => prev.map(item => {
+      if (item.id === id) {
+        const updatedItem = { ...item, [field]: value };
+        if (field === 'quantity' || field === 'unitPrice') {
+          updatedItem.total = updatedItem.quantity * updatedItem.unitPrice;
+        }
+        return updatedItem;
+      }
+      return item;
+    }));
+  };
+
+  // Adicionar novo item
+  const addInvoiceItem = () => {
+    const newItem: InvoiceItem = {
+      id: Date.now().toString(),
+      description: '',
+      quantity: 1,
+      unitPrice: 0,
+      total: 0
+    };
+    setInvoiceItems(prev => [...prev, newItem]);
+  };
+
+  // Remover item
+  const removeInvoiceItem = (id: string) => {
+    if (invoiceItems.length > 1) {
+      setInvoiceItems(prev => prev.filter(item => item.id !== id));
+    }
+  };
+
+  // Formatar moeda
+  const formatCurrency = (amount: number) => {
+    return `${amount.toFixed(2)} CHF`;
+  };
 
   // Dados de exemplo para desenvolvimento (baseados na foto)
   const sampleFactures: Facture[] = [
@@ -226,6 +304,9 @@ export default function Factures() {
     try {
       console.log('🔍 Factures - Criando nova fatura...');
       
+      // Calcular totais finais
+      const { subtotal, tva, total } = calculateTotals();
+      
       // Gerar número da fatura
       const invoiceNumber = `FAC-${new Date().getFullYear()}-${String(factures.length + 1).padStart(3, '0')}`;
       
@@ -235,16 +316,14 @@ export default function Factures() {
         client_name: newFacture.client_name || 'Cliente Temporário',
         date: newFacture.date,
         echeance: newFacture.due_date || newFacture.date,
-        articles: [
-          {
-            description: newFacture.description,
-            qty: 1,
-            price: newFacture.total_amount
-          }
-        ],
-        subtotal: newFacture.total_amount,
-        tva: newFacture.total_amount * 0.2, // 20% de TVA
-        total: newFacture.total_amount * 1.2,
+        articles: invoiceItems.map(item => ({
+          description: item.description,
+          qty: item.quantity,
+          price: item.unitPrice
+        })),
+        subtotal: subtotal,
+        tva: tva,
+        total: total,
         status: newFacture.status,
         user_id: 'user_1'
       };
@@ -292,6 +371,15 @@ export default function Factures() {
         total_amount: 0,
         status: 'brouillon'
       });
+      
+      // Resetar itens da fatura
+      setInvoiceItems([{
+        id: '1',
+        description: 'Description du service',
+        quantity: 1,
+        unitPrice: 0,
+        total: 0
+      }]);
       
       setShowModal(false);
       
@@ -475,119 +563,205 @@ export default function Factures() {
 
       {/* Modal de Nova Fatura */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Nouvelle facture</h2>
-              <button
-                onClick={() => setShowModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <span className="material-icons">close</span>
-              </button>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-auto max-h-[90vh] overflow-y-auto">
+            {/* Header do Modal */}
+            <div className="px-6 py-4 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Nouvelle facture</h2>
+                  <p className="text-gray-600 mt-1">Remplissez les détails de la facture.</p>
+                </div>
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="text-gray-400 hover:text-gray-600 p-2"
+                >
+                  <span className="material-icons text-xl">close</span>
+                </button>
+              </div>
             </div>
 
-            <form onSubmit={handleCreateFacture} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nom du client
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={newFacture.client_name}
-                  onChange={(e) => setNewFacture({ ...newFacture, client_name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  placeholder="Ex: Tech Solutions SA"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={newFacture.description}
-                  onChange={(e) => setNewFacture({ ...newFacture, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  placeholder="Ex: Consultance technique - Projet A"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
+            <form onSubmit={handleCreateFacture} className="p-6 space-y-6">
+              {/* Informações Básicas */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    <span className="material-icons text-sm inline mr-1">calendar_today</span>
-                    Date
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Client *
+                  </label>
+                  <select
+                    required
+                    value={newFacture.client_name}
+                    onChange={(e) => setNewFacture({ ...newFacture, client_name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  >
+                    <option value="">Sélectionner un client</option>
+                    {availableClients.map(client => (
+                      <option key={client} value={client}>{client}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Statut
+                  </label>
+                  <select
+                    value={newFacture.status}
+                    onChange={(e) => setNewFacture({ ...newFacture, status: e.target.value as 'envoyée' | 'payée' | 'brouillon' })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  >
+                    <option value="brouillon">Brouillon</option>
+                    <option value="envoyée">Envoyée</option>
+                    <option value="payée">Payée</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Date de facturation
                   </label>
                   <input
                     type="date"
                     required
                     value={newFacture.date}
                     onChange={(e) => setNewFacture({ ...newFacture, date: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Échéance
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Date d'échéance
                   </label>
                   <input
                     type="date"
                     value={newFacture.due_date}
                     onChange={(e) => setNewFacture({ ...newFacture, due_date: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   />
                 </div>
               </div>
 
+              {/* Artigos de la facture */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  <span className="material-icons text-sm inline mr-1">attach_money</span>
-                  Montant total (CHF)
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  required
-                  value={newFacture.total_amount}
-                  onChange={(e) => setNewFacture({ ...newFacture, total_amount: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  placeholder="0.00"
-                />
-              </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Articles de la facture</h3>
+                
+                <div className="overflow-x-auto">
+                  <table className="min-w-full border border-gray-200 rounded-lg">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                          Description
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                          Qté
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                          Prix unitaire
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                          Total HT
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {invoiceItems.map((item, index) => (
+                        <tr key={item.id}>
+                          <td className="px-4 py-3">
+                            <input
+                              type="text"
+                              value={item.description}
+                              onChange={(e) => updateInvoiceItem(item.id, 'description', e.target.value)}
+                              placeholder="Description du service"
+                              className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500"
+                            />
+                          </td>
+                          <td className="px-4 py-3">
+                            <input
+                              type="number"
+                              min="1"
+                              value={item.quantity}
+                              onChange={(e) => updateInvoiceItem(item.id, 'quantity', parseInt(e.target.value) || 1)}
+                              className="w-20 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500"
+                            />
+                          </td>
+                          <td className="px-4 py-3">
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={item.unitPrice}
+                              onChange={(e) => updateInvoiceItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
+                              className="w-24 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500"
+                            />
+                          </td>
+                          <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                            {formatCurrency(item.total)}
+                          </td>
+                          <td className="px-4 py-3">
+                            {invoiceItems.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => removeInvoiceItem(item.id)}
+                                className="text-red-600 hover:text-red-800 p-1"
+                                title="Supprimer"
+                              >
+                                <span className="material-icons text-sm">delete</span>
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Statut
-                </label>
-                <select
-                  value={newFacture.status}
-                  onChange={(e) => setNewFacture({ ...newFacture, status: e.target.value as 'envoyée' | 'payée' | 'brouillon' })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                <button
+                  type="button"
+                  onClick={addInvoiceItem}
+                  className="mt-3 text-red-600 hover:text-red-800 font-medium flex items-center gap-2"
                 >
-                  <option value="brouillon">Brouillon</option>
-                  <option value="envoyée">Envoyée</option>
-                  <option value="payée">Payée</option>
-                </select>
+                  <span className="material-icons text-sm">add</span>
+                  + Ajouter un article
+                </button>
               </div>
 
-              <div className="flex gap-3 pt-4">
+              {/* Résumé des totaux */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex justify-end">
+                  <div className="w-64 space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Sous-total HT:</span>
+                      <span className="font-medium">{formatCurrency(calculateTotals().subtotal)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">TVA (7.7%):</span>
+                      <span className="font-medium">{formatCurrency(calculateTotals().tva)}</span>
+                    </div>
+                    <div className="flex justify-between text-lg font-bold border-t border-gray-300 pt-2">
+                      <span>Total TTC:</span>
+                      <span>{formatCurrency(calculateTotals().total)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Boutons d'action */}
+              <div className="flex gap-3 pt-4 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                  className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
                   disabled={isCreating}
-                  className="flex-1 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-medium"
                 >
                   {isCreating ? (
                     <>
@@ -597,7 +771,7 @@ export default function Factures() {
                   ) : (
                     <>
                       <span className="material-icons text-sm mr-1">description</span>
-                      Créer facture
+                      Créer la facture
                     </>
                   )}
                 </button>
