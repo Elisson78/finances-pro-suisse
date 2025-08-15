@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import AdminPanelAccess from '../components/admin/AdminPanelAccess';
 
 interface Facture {
   id: string;
@@ -24,6 +26,7 @@ const formatCurrency = (amount: number) => {
 
 const DashboardHome: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -170,6 +173,9 @@ const DashboardHome: React.FC = () => {
         <h1 className="text-3xl font-bold text-gray-900">Tableau de bord</h1>
         <p className="text-gray-600">Vue d'ensemble de votre activité comptable</p>
       </div>
+
+      {/* Painel de Administração (apenas para admins) */}
+      <AdminPanelAccess userType={user?.account_type} className="mb-6" />
       
       {/* Alerta de erro */}
       {error && (

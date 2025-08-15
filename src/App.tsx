@@ -11,6 +11,8 @@ import { AuthProvider } from './contexts/AuthContext';
 import DashboardHome from './pages/DashboardHome';
 import Factures from './pages/Factures';
 import ServicesPage from './pages/ServicesPage';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminUsers from './pages/admin/AdminUsers';
 
 const App: React.FC = () => {
   return (
@@ -31,6 +33,21 @@ const App: React.FC = () => {
             <Route index element={<DashboardHome />} />
             <Route path="factures" element={<Factures />} />
             <Route path="services" element={<ServicesPage />} />
+          </Route>
+
+          <Route 
+            path="/dashboard-admin" 
+            element={
+              <PrivateRoute>
+                <DashboardPage />
+              </PrivateRoute>
+            } 
+          >
+            <Route index element={<AdminDashboard />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="utilisateurs" element={<AdminUsers />} />
+            <Route path="companies" element={<AdminUsers />} />
+            <Route path="entreprises" element={<AdminUsers />} />
           </Route>
 
         </Routes>
