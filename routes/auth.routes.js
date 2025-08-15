@@ -83,7 +83,7 @@ router.post('/register', [
 
     // Criar usuário
     const newUser = await dbService.run(
-      'INSERT INTO users (id, email, password_hash, full_name, company) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      'INSERT INTO users (id, email, password_hash, full_name, company_name) VALUES ($1, $2, $3, $4, $5) RETURNING *',
       [userId, email, passwordHash, full_name, company]
     );
 
@@ -103,7 +103,7 @@ router.post('/register', [
       id: newUser.id,
       email: newUser.email,
       full_name: newUser.full_name,
-      company_name: newUser.company,
+      company_name: newUser.company_name,
       role: 'user',
       created_at: newUser.created_at
     };
@@ -172,7 +172,7 @@ router.post('/login', [
       id: user.id,
       email: user.email,
       full_name: user.full_name,
-      company_name: user.company,
+      company_name: user.company_name,
       role: 'user',
       created_at: user.created_at
     };
@@ -212,7 +212,7 @@ router.get('/me', async (req, res) => {
     
     // Buscar dados atualizados do usuário
     const user = await dbService.get(
-      'SELECT id, email, full_name, company, created_at FROM users WHERE id = $1',
+      'SELECT id, email, full_name, company_name, created_at FROM users WHERE id = $1',
       [decoded.id]
     );
 
@@ -227,7 +227,7 @@ router.get('/me', async (req, res) => {
       id: user.id,
       email: user.email,
       full_name: user.full_name,
-      company_name: user.company,
+      company_name: user.company_name,
       role: 'user',
       created_at: user.created_at
     };

@@ -35,7 +35,7 @@ services:
     ports:
       - "4000:80"
     environment:
-      - REACT_APP_API_URL=https://api.finance.event-connect.app
+      - VITE_API_URL=https://api.finance.event-connect.app
     depends_on:
       - backend
     restart: unless-stopped
@@ -43,7 +43,7 @@ services:
       - coolify
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`finance.event-connect.app`)"
+      - "traefik.http.routers.frontend.rule=Host(`app.finance.event-connect.app`)"
       - "traefik.http.routers.frontend.tls=true"
       - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
       - "traefik.http.services.frontend.loadbalancer.server.port=80"

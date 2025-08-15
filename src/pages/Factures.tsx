@@ -43,7 +43,7 @@ export default function Factures() {
   };
 
   if (loading) {
-    return (
+  return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="text-xl">Carregando faturas...</div>
       </div>
@@ -101,7 +101,7 @@ export default function Factures() {
                     </li>
                   ))}
                 </ul>
-              </div>
+                  </div>
               
               <div className="flex justify-end mt-4">
                 <button
@@ -109,10 +109,10 @@ export default function Factures() {
                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
                 >
                   Gerar PDF
-                </button>
-              </div>
-            </div>
-          ))}
+                          </button>
+                      </div>
+                    </div>
+                  ))}
         </div>
       )}
     </div>

@@ -1,24 +1,39 @@
-FROM node:18-alpine
+# Build stage
+FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# Copy package files first for better caching
+# Install build dependencies
+RUN apk add --no-cache python3 make g++
+
+# Copy package files
 COPY package*.json ./
 
-# Install all dependencies
-RUN npm install
+# Install ALL dependencies (including devDependencies for build)
+RUN npm ci
 
-# Copy all application files
+# Copy source code
 COPY . .
 
-# Set environment variables
-ENV NODE_ENV=production
-ENV PORT=3000
-ENV DATABASE_URL=postgres://postgres:lYPS50GDgjiA6QEL0REU142DUG0qHefqqGcGo8I2njYiBkpxlSuuhMv8Lpv1K2VY@91.107.237.159:5432/db_finance
-ENV JWT_SECRET=finances-pro-suisse-secret-key-production
+# Build the application
+RUN npm run build
 
-# Expose port 3000
-EXPOSE 3000
+# Production stage
+FROM nginx:alpine
 
-# Start the application
-CMD ["node", "server.js"]
+# Copy built files to nginx
+COPY --from=build /app/build /usr/share/nginx/html
+
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Create necessary directories and set permissions
+RUN mkdir -p /var/log/nginx /var/cache/nginx && \
+    chown -R nginx:nginx /var/log/nginx /var/cache/nginx /usr/share/nginx/html && \
+    chmod -R 755 /usr/share/nginx/html
+
+# Expose port 8080 (to match Traefik configuration)
+EXPOSE 8080
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
