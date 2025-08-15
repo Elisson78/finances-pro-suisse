@@ -6,10 +6,12 @@ export interface User {
   full_name: string;
   company_name: string;
   role: string;
+  account_type?: string;
   user_metadata?: {
     full_name?: string;
     company_name?: string;
     role?: string;
+    account_type?: string;
   };
 }
 
