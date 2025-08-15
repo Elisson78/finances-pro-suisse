@@ -1,19 +1,20 @@
 -- Script para criar banco de teste com dados de exemplo
 -- Execute como usuário postgres
 
--- 1. Criar banco de teste
-CREATE DATABASE finances_test OWNER postgres;
+-- 1. Usar banco financespro (que será criado pelo Docker)
+-- CREATE DATABASE financespro OWNER postgres;
 
--- 2. Conectar ao banco de teste
-\c finances_test;
+-- 2. Conectar ao banco financespro
+-- \c financespro;
 
 -- 3. Criar tabelas
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    full_name VARCHAR(255),
-    company VARCHAR(255),
+    full_name VARCHAR(255) NOT NULL,
+    company VARCHAR(255) NOT NULL,
+    account_type VARCHAR(20) DEFAULT 'entreprise' CHECK (account_type IN ('entreprise', 'administrateur')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -116,6 +117,6 @@ SELECT 'Factures', COUNT(*) FROM factures
 UNION ALL
 SELECT 'Facture Items', COUNT(*) FROM facture_items;
 
-echo "✅ Banco de teste 'finances_test' criado com sucesso!"
-echo "📊 Dados de exemplo inseridos"
-echo "🔗 Conecte usando: postgres://postgres:lYPS50GDgjiA6QEL0GG0qHefqqGcGo8I2njYiBkpxlSuuhMv8Lpv1K2VY@91.107.237.159:5432/finances_test"
+-- echo "✅ Banco 'financespro' inicializado com sucesso!"
+-- echo "📊 Dados de exemplo inseridos"
+-- echo "🔗 Conecte usando: postgres://postgres:password@localhost:5432/financespro"

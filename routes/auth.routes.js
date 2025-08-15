@@ -6,7 +6,7 @@ const { body, validationResult } = require('express-validator');
 const { Pool } = require('pg');
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgres://postgres:password@localhost:5432/financespro',
+  connectionString: process.env.DATABASE_URL || 'postgres://postgres:lYPS50GDgjiA6QEL0REU142DUG0qHefqqGcGo8I2njYiBkpxlSuuhMv8Lpv1K2VY@91.107.237.159:5432/db_finance',
   ssl: false
 });
 
@@ -78,13 +78,10 @@ router.post('/register', [
     // Hash da senha
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Gerar UUID para o usuário
-    const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
-
-    // Criar usuário
+    // Criar usuário (usando UUID padrão do PostgreSQL)
     const newUser = await dbService.run(
-      'INSERT INTO users (id, email, password_hash, full_name, company_name) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [userId, email, passwordHash, full_name, company]
+      'INSERT INTO users (email, password_hash, full_name, company) VALUES ($1, $2, $3, $4) RETURNING *',
+      [email, passwordHash, full_name, company]
     );
 
     // Gerar JWT
@@ -103,7 +100,7 @@ router.post('/register', [
       id: newUser.id,
       email: newUser.email,
       full_name: newUser.full_name,
-      company_name: newUser.company_name,
+      company_name: newUser.company,
       role: 'user',
       created_at: newUser.created_at
     };
@@ -172,7 +169,7 @@ router.post('/login', [
       id: user.id,
       email: user.email,
       full_name: user.full_name,
-      company_name: user.company_name,
+      company_name: user.company,
       role: 'user',
       created_at: user.created_at
     };
@@ -212,7 +209,7 @@ router.get('/me', async (req, res) => {
     
     // Buscar dados atualizados do usuário
     const user = await dbService.get(
-      'SELECT id, email, full_name, company_name, created_at FROM users WHERE id = $1',
+      'SELECT id, email, full_name, company, created_at FROM users WHERE id = $1',
       [decoded.id]
     );
 
@@ -227,7 +224,7 @@ router.get('/me', async (req, res) => {
       id: user.id,
       email: user.email,
       full_name: user.full_name,
-      company_name: user.company_name,
+      company_name: user.company,
       role: 'user',
       created_at: user.created_at
     };

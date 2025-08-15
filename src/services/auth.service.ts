@@ -1,4 +1,4 @@
-// Versão simplificada para evitar erros durante o desenvolvimento inicial
+import api from './api';
 
 interface LoginCredentials {
   email: string;
@@ -6,17 +6,19 @@ interface LoginCredentials {
 }
 
 interface RegisterData {
-  fullName: string;
+  full_name: string;
   email: string;
   password: string;
-  companyName: string;
+  company: string;
 }
 
 interface User {
   id: string;
   email: string;
-  fullName: string;
-  companyName: string;
+  full_name: string;
+  company_name: string;
+  role: string;
+  created_at: string;
 }
 
 interface AuthResponse {
@@ -25,54 +27,48 @@ interface AuthResponse {
 }
 
 class AuthService {
-  // Simulação de login para desenvolvimento
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    // Em um ambiente de produção, isto seria uma chamada API
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const user = {
-          id: "user-123",
-          email: credentials.email,
-          fullName: "Utilisateur Demo",
-          companyName: "Entreprise Demo"
-        };
+    try {
+      const response = await api.post('/auth/login', credentials);
+      
+      if (response.data.status === 'success') {
+        const { token, user } = response.data.data;
         
-        const response = {
-          token: "jwt-token-example",
-          user
-        };
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
         
-        localStorage.setItem('token', response.token);
-        localStorage.setItem('user', JSON.stringify(response.user));
-        
-        resolve(response);
-      }, 500);
-    });
+        return { token, user };
+      } else {
+        throw new Error(response.data.message || 'Erro no login');
+      }
+    } catch (error: any) {
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+      throw new Error('Erro de conexão com o servidor');
+    }
   }
 
-  // Simulação de registro para desenvolvimento
   async register(data: RegisterData): Promise<AuthResponse> {
-    // Em um ambiente de produção, isto seria uma chamada API
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const user = {
-          id: "user-123",
-          email: data.email,
-          fullName: data.fullName,
-          companyName: data.companyName
-        };
+    try {
+      const response = await api.post('/auth/register', data);
+      
+      if (response.data.status === 'success') {
+        const { token, user } = response.data.data;
         
-        const response = {
-          token: "jwt-token-example",
-          user
-        };
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
         
-        localStorage.setItem('token', response.token);
-        localStorage.setItem('user', JSON.stringify(response.user));
-        
-        resolve(response);
-      }, 500);
-    });
+        return { token, user };
+      } else {
+        throw new Error(response.data.message || 'Erro no registro');
+      }
+    } catch (error: any) {
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+      throw new Error('Erro de conexão com o servidor');
+    }
   }
 
   logout() {
@@ -93,4 +89,5 @@ class AuthService {
   }
 }
 
-export default new AuthService();
+export const authService = new AuthService();
+export default authService;

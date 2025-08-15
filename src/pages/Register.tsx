@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { postgresService } from '../services/postgres.service';
+import { authService } from '../services/auth.service';
 
 interface RegisterFormData {
   fullName: string;
@@ -54,19 +54,15 @@ const Register: React.FC = () => {
         throw new Error('Você deve aceitar os termos e condições');
       }
 
-      // Hash da senha (simples para teste - em produção usar bcrypt)
-      const passwordHash = `$2b$10$${btoa(formData.password)}`;
-
-      // Criar usuário no PostgreSQL
-      const newUser = await postgresService.createUser({
+      // Registrar usuário via API backend
+      const result = await authService.register({
         email: formData.email,
-        password_hash: passwordHash,
+        password: formData.password,
         full_name: formData.fullName,
-        company: formData.company,
-        account_type: formData.accountType,
+        company: formData.company
       });
 
-      console.log('✅ Usuário criado com sucesso:', newUser);
+      console.log('✅ Usuário criado com sucesso:', result);
 
       // Redirecionar para login
       navigate('/login', { 

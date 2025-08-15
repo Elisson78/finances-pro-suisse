@@ -59,7 +59,7 @@ class PostgreSQLService {
     this.pool = new Pool({
       host: '91.107.237.159',
       port: 5432,
-      database: 'postgres',
+      database: 'db_finance',
       user: 'postgres',
       password: 'lYPS50GDgjiA6QEL0GG0qHefqqGcGo8I2njYiBkpxlSuuhMv8Lpv1K2VY',
       ssl: false, // Para conexão local
