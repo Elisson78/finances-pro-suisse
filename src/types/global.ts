@@ -69,7 +69,7 @@ export interface Facture {
   tva: number;
   total: number;
   total_amount?: number; // Para compatibilidade com postgres.service
-  status: 'paid' | 'pending' | 'overdue';
+  status: 'envoyée' | 'payée' | 'brouillon';
   user_id: string;
   created_at: string;
   updated_at: string;

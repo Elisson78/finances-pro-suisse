@@ -8,7 +8,7 @@ interface NewFactureData {
   date: string;
   due_date: string;
   total_amount: number;
-  status: 'pending' | 'paid' | 'overdue';
+  status: 'envoyée' | 'payée' | 'brouillon';
 }
 
 export default function Factures() {
@@ -17,82 +17,128 @@ export default function Factures() {
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'envoyée' | 'payée' | 'brouillon'>('all');
   const [newFacture, setNewFacture] = useState<NewFactureData>({
     client_name: '',
     description: '',
     date: new Date().toISOString().split('T')[0],
     due_date: '',
     total_amount: 0,
-    status: 'pending'
+    status: 'brouillon'
   });
 
-  // Dados de exemplo para desenvolvimento
+  // Dados de exemplo para desenvolvimento (baseados na foto)
   const sampleFactures: Facture[] = [
     {
       id: '1',
-      numero_facture: 'INV-2025-001',
+      numero_facture: 'FAC-2024-001',
       client_id: 'client_1',
       client_name: 'Tech Solutions SA',
-      date: '2025-08-15',
-      echeance: '2025-09-15',
+      date: '2024-01-15',
+      echeance: '2024-02-14',
       articles: [
         {
-          description: 'Consultoria técnica - Projeto A',
+          description: 'Consultoria técnica - Projet A',
           qty: 1,
-          price: 1500.00
+          price: 1550.88
         }
       ],
-      subtotal: 1500.00,
-      tva: 300.00,
-      total: 1800.00,
-      status: 'pending',
+      subtotal: 1292.40,
+      tva: 258.48,
+      total: 1550.88,
+      status: 'envoyée',
       user_id: 'user_1',
-      created_at: '2025-08-15T10:00:00Z',
-      updated_at: '2025-08-15T10:00:00Z'
+      created_at: '2024-01-15T10:00:00Z',
+      updated_at: '2024-01-15T10:00:00Z'
     },
     {
       id: '2',
-      numero_facture: 'INV-2025-002',
+      numero_facture: 'FAC-2024-002',
       client_id: 'client_2',
       client_name: 'FinancesPro Suisse',
-      date: '2025-08-10',
-      echeance: '2025-09-10',
+      date: '2024-01-18',
+      echeance: '2024-02-02',
       articles: [
         {
-          description: 'Desenvolvimento de sistema',
+          description: 'Développement de système',
           qty: 1,
-          price: 2500.00
+          price: 3231.00
         }
       ],
-      subtotal: 2500.00,
-      tva: 500.00,
-      total: 3000.00,
-      status: 'paid',
+      subtotal: 2692.50,
+      tva: 538.50,
+      total: 3231.00,
+      status: 'payée',
       user_id: 'user_1',
-      created_at: '2025-08-10T14:30:00Z',
-      updated_at: '2025-08-12T09:15:00Z'
+      created_at: '2024-01-18T14:30:00Z',
+      updated_at: '2024-01-18T14:30:00Z'
     },
     {
       id: '3',
-      numero_facture: 'INV-2025-003',
+      numero_facture: '2024-002',
       client_id: 'client_3',
       client_name: 'Silva & Associados',
-      date: '2025-08-05',
-      echeance: '2025-08-20',
+      date: '2024-01-22',
+      echeance: '2024-02-21',
       articles: [
         {
-          description: 'Auditoria contábil',
+          description: 'Audit comptable',
           qty: 1,
-          price: 800.00
+          price: 1830.90
         }
       ],
-      subtotal: 800.00,
-      tva: 160.00,
-      total: 960.00,
-      status: 'overdue',
+      subtotal: 1525.75,
+      tva: 305.15,
+      total: 1830.90,
+      status: 'envoyée',
       user_id: 'user_1',
-      created_at: '2025-08-05T11:20:00Z',
-      updated_at: '2025-08-05T11:20:00Z'
+      created_at: '2024-01-22T11:20:00Z',
+      updated_at: '2024-01-22T11:20:00Z'
+    },
+    {
+      id: '4',
+      numero_facture: '2024-003',
+      client_id: 'client_4',
+      client_name: 'Consulting Plus',
+      date: '2024-01-28',
+      echeance: '2024-02-27',
+      articles: [
+        {
+          description: 'Conseil en gestion',
+          qty: 1,
+          price: 1534.73
+        }
+      ],
+      subtotal: 1278.94,
+      tva: 255.79,
+      total: 1534.73,
+      status: 'brouillon',
+      user_id: 'user_1',
+      created_at: '2024-01-28T09:15:00Z',
+      updated_at: '2024-01-28T09:15:00Z'
+    },
+    {
+      id: '5',
+      numero_facture: '2024-001',
+      client_id: 'client_5',
+      client_name: 'Innovation Lab',
+      date: '2024-01-15',
+      echeance: '2024-02-14',
+      articles: [
+        {
+          description: 'Recherche et développement',
+          qty: 1,
+          price: 646.20
+        }
+      ],
+      subtotal: 538.50,
+      tva: 107.70,
+      total: 646.20,
+      status: 'payée',
+      user_id: 'user_1',
+      created_at: '2024-01-15T16:45:00Z',
+      updated_at: '2024-01-15T16:45:00Z'
     }
   ];
 
@@ -131,6 +177,47 @@ export default function Factures() {
     fetchFactures();
   }, []);
 
+  // Filtrar faturas baseado na busca e filtro de status
+  const filteredFactures = factures.filter(facture => {
+    const matchesSearch = 
+      facture.numero_facture.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      facture.client_name.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || facture.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  // Formatar data em francês
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'short'
+    });
+  };
+
+  // Obter badge de status
+  const getStatusBadge = (status: string) => {
+    const styles = {
+      envoyée: 'bg-blue-100 text-blue-800',
+      payée: 'bg-green-100 text-green-800',
+      brouillon: 'bg-gray-100 text-gray-800'
+    };
+    
+    const labels = {
+      envoyée: 'envoyée',
+      payée: 'payée',
+      brouillon: 'brouillon'
+    };
+    
+    return (
+      <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${styles[status as keyof typeof styles] || 'bg-gray-100 text-gray-800'}`}>
+        {labels[status as keyof typeof labels] || status}
+      </span>
+    );
+  };
+
   // Criar nova fatura
   const handleCreateFacture = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,7 +227,7 @@ export default function Factures() {
       console.log('🔍 Factures - Criando nova fatura...');
       
       // Gerar número da fatura
-      const invoiceNumber = `INV-${new Date().getFullYear()}-${String(factures.length + 1).padStart(3, '0')}`;
+      const invoiceNumber = `FAC-${new Date().getFullYear()}-${String(factures.length + 1).padStart(3, '0')}`;
       
       const factureData = {
         numero_facture: invoiceNumber,
@@ -203,7 +290,7 @@ export default function Factures() {
         date: new Date().toISOString().split('T')[0],
         due_date: '',
         total_amount: 0,
-        status: 'pending'
+        status: 'brouillon'
       });
       
       setShowModal(false);
@@ -243,83 +330,155 @@ export default function Factures() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Header com título e botão */}
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Faturas</h1>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Gestion des factures</h1>
+          <p className="text-gray-600 mt-2">Créez et gérez vos factures clients</p>
+        </div>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center gap-2 font-medium"
+          className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 flex items-center gap-2 font-medium"
         >
           <span className="material-icons">add</span>
-          Nova Fatura
+          + Nouvelle facture
         </button>
       </div>
-      
-      {factures.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500">Nenhuma fatura encontrada</p>
-          <button 
-            onClick={() => setShowModal(true)}
-            className="mt-4 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+
+      {/* Barra de busca e filtros */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="flex-1 relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <span className="material-icons text-gray-400">search</span>
+          </div>
+          <input
+            type="text"
+            placeholder="Rechercher par numéro de facture ou nom du client..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+          />
+        </div>
+        <div className="sm:w-48">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as 'all' | 'envoyée' | 'payée' | 'brouillon')}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
           >
-            Criar Primeira Fatura
-          </button>
+            <option value="all">Tous les statuts</option>
+            <option value="envoyée">Envoyée</option>
+            <option value="payée">Payée</option>
+            <option value="brouillon">Brouillon</option>
+          </select>
         </div>
-      ) : (
-        <div className="grid gap-6">
-          {factures.map((facture) => (
-            <div key={facture.id} className="bg-white shadow-md rounded-lg p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold">{facture.numero_facture}</h3>
-                  <p className="text-gray-600">{facture.articles?.[0]?.description || 'Sem descrição'}</p>
-                  <p className="text-sm text-gray-500">
-                    Cliente: {facture.client_name}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Data: {new Date(facture.date).toLocaleDateString()}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Vencimento: {new Date(facture.echeance).toLocaleDateString()}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-2xl font-bold">CHF {facture.total?.toFixed(2) || facture.total_amount?.toFixed(2) || '0.00'}</p>
-                  <p className="text-sm text-gray-500">
-                    Subtotal: CHF {facture.subtotal?.toFixed(2) || '0.00'}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    TVA: CHF {facture.tva?.toFixed(2) || '0.00'}
-                  </p>
-                  <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                    facture.status === 'paid' ? 'bg-green-100 text-green-800' :
-                    facture.status === 'overdue' ? 'bg-red-100 text-red-800' :
-                    'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {facture.status === 'paid' ? 'Pago' :
-                     facture.status === 'overdue' ? 'Vencido' : 'Pendente'}
-                  </span>
-                </div>
-              </div>
-              
-              <div className="flex justify-end mt-4">
-                <button
-                  onClick={() => handleGeneratePDF(facture)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
-                >
-                  Gerar PDF
-                </button>
-              </div>
-            </div>
-          ))}
+      </div>
+
+      {/* Lista de faturas */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900">
+            Toutes les factures ({filteredFactures.length})
+          </h2>
         </div>
-      )}
+        
+        {filteredFactures.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500">Aucune facture trouvée</p>
+            <button 
+              onClick={() => setShowModal(true)}
+              className="mt-4 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+            >
+              Créer votre première facture
+            </button>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    N° Facture
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Client
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Date
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Échéance
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Montant
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Statut
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredFactures.map((facture) => (
+                  <tr key={facture.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {facture.numero_facture}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {facture.client_name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {formatDate(facture.date)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {formatDate(facture.echeance)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                      {facture.total?.toFixed(2) || facture.total_amount?.toFixed(2) || '0.00'} CHF
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {getStatusBadge(facture.status)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => handleGeneratePDF(facture)}
+                          className="text-blue-600 hover:text-blue-900 p-1 rounded"
+                          title="Voir"
+                        >
+                          <span className="material-icons text-sm">visibility</span>
+                        </button>
+                        <button
+                          onClick={() => alert('Éditer la facture ' + facture.numero_facture)}
+                          className="text-gray-600 hover:text-gray-900 p-1 rounded"
+                          title="Éditer"
+                        >
+                          <span className="material-icons text-sm">edit</span>
+                        </button>
+                        <button
+                          onClick={() => alert('Supprimer la facture ' + facture.numero_facture)}
+                          className="text-red-600 hover:text-red-900 p-1 rounded"
+                          title="Supprimer"
+                        >
+                          <span className="material-icons text-sm">delete</span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       {/* Modal de Nova Fatura */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Nova Fatura</h2>
+              <h2 className="text-xl font-bold text-gray-900">Nouvelle facture</h2>
               <button
                 onClick={() => setShowModal(false)}
                 className="text-gray-400 hover:text-gray-600"
@@ -331,7 +490,7 @@ export default function Factures() {
             <form onSubmit={handleCreateFacture} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nome do Cliente
+                  Nom du client
                 </label>
                 <input
                   type="text"
@@ -345,7 +504,7 @@ export default function Factures() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Descrição
+                  Description
                 </label>
                 <input
                   type="text"
@@ -353,7 +512,7 @@ export default function Factures() {
                   value={newFacture.description}
                   onChange={(e) => setNewFacture({ ...newFacture, description: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  placeholder="Ex: Consultoria técnica - Projeto A"
+                  placeholder="Ex: Consultance technique - Projet A"
                 />
               </div>
 
@@ -361,7 +520,7 @@ export default function Factures() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     <span className="material-icons text-sm inline mr-1">calendar_today</span>
-                    Data
+                    Date
                   </label>
                   <input
                     type="date"
@@ -374,7 +533,7 @@ export default function Factures() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Vencimento
+                    Échéance
                   </label>
                   <input
                     type="date"
@@ -388,7 +547,7 @@ export default function Factures() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   <span className="material-icons text-sm inline mr-1">attach_money</span>
-                  Valor Total (CHF)
+                  Montant total (CHF)
                 </label>
                 <input
                   type="number"
@@ -404,16 +563,16 @@ export default function Factures() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Status
+                  Statut
                 </label>
                 <select
                   value={newFacture.status}
-                  onChange={(e) => setNewFacture({ ...newFacture, status: e.target.value as 'pending' | 'paid' | 'overdue' })}
+                  onChange={(e) => setNewFacture({ ...newFacture, status: e.target.value as 'envoyée' | 'payée' | 'brouillon' })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 >
-                  <option value="pending">Pendente</option>
-                  <option value="paid">Pago</option>
-                  <option value="overdue">Vencido</option>
+                  <option value="brouillon">Brouillon</option>
+                  <option value="envoyée">Envoyée</option>
+                  <option value="payée">Payée</option>
                 </select>
               </div>
 
@@ -423,7 +582,7 @@ export default function Factures() {
                   onClick={() => setShowModal(false)}
                   className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
                 >
-                  Cancelar
+                  Annuler
                 </button>
                 <button
                   type="submit"
@@ -433,12 +592,12 @@ export default function Factures() {
                   {isCreating ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Criando...
+                      Création...
                     </>
                   ) : (
                     <>
                       <span className="material-icons text-sm mr-1">description</span>
-                      Criar Fatura
+                      Créer facture
                     </>
                   )}
                 </button>
