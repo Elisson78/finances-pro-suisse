@@ -16,7 +16,7 @@ RUN npm ci
 RUN npm run build
 
 # Setup nginx
-RUN mkdir -p /var/log/nginx /var/cache/nginx
+RUN mkdir -p /var/log/nginx /var/cache/nginx /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/nginx.conf
 RUN cp -r build/* /usr/share/nginx/html/
 
