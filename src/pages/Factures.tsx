@@ -1,11 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { PDFService } from '../services/pdf.service';
 import apiService, { Facture } from '../services/api.service';
+import { Plus, X, Calendar, DollarSign, FileText } from 'lucide-react';
+
+interface NewFactureData {
+  client_name: string;
+  description: string;
+  date: string;
+  due_date: string;
+  total_amount: number;
+  status: 'pending' | 'paid' | 'overdue';
+}
 
 export default function Factures() {
   const [factures, setFactures] = useState<Facture[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [newFacture, setNewFacture] = useState<NewFactureData>({
+    client_name: '',
+    description: '',
+    date: new Date().toISOString().split('T')[0],
+    due_date: '',
+    total_amount: 0,
+    status: 'pending'
+  });
 
   // Buscar faturas
   useEffect(() => {
@@ -22,6 +42,70 @@ export default function Factures() {
     }
     fetchFactures();
   }, []);
+
+  // Criar nova fatura
+  const handleCreateFacture = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsCreating(true);
+    
+    try {
+      // Gerar número da fatura
+      const invoiceNumber = `INV-${new Date().getFullYear()}-${String(factures.length + 1).padStart(3, '0')}`;
+      
+      const factureData = {
+        client_id: 'temp_client_id',
+        client_name: 'Cliente Temporário',
+        date: newFacture.date,
+        echeance: newFacture.due_date || newFacture.date,
+        articles: [
+          {
+            description: newFacture.description,
+            qty: 1,
+            price: newFacture.total_amount,
+            total: newFacture.total_amount
+          }
+        ],
+        subtotal: newFacture.total_amount,
+        tva: 0,
+        total: newFacture.total_amount,
+        status: newFacture.status
+      };
+
+      const response = await fetch('/api/factures', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(factureData)
+      });
+
+      if (response.ok) {
+        // Recarregar faturas
+        const data = await apiService.getFactures();
+        setFactures(data);
+        
+        // Resetar formulário
+        setNewFacture({
+          client_name: '',
+          description: '',
+          date: new Date().toISOString().split('T')[0],
+          due_date: '',
+          total_amount: 0,
+          status: 'pending'
+        });
+        
+        setShowModal(false);
+      } else {
+        throw new Error('Erro ao criar fatura');
+      }
+    } catch (err) {
+      console.error('Erro ao criar fatura:', err);
+      setError('Erro ao criar fatura');
+    } finally {
+      setIsCreating(false);
+    }
+  };
 
   // Gerar PDF
   const handleGeneratePDF = async (facture: Facture) => {
@@ -60,7 +144,16 @@ export default function Factures() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Faturas</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Faturas</h1>
+        <button
+          onClick={() => setShowModal(true)}
+          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center gap-2 font-medium"
+        >
+          <Plus className="h-5 w-5" />
+          Nova Fatura
+        </button>
+      </div>
       
       {factures.length === 0 ? (
         <div className="text-center py-12">
@@ -113,6 +206,126 @@ export default function Factures() {
                       </div>
                     </div>
                   ))}
+        </div>
+      )}
+
+      {/* Modal de Nova Fatura */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-900">Nova Fatura</h2>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateFacture} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Descrição
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newFacture.description}
+                  onChange={(e) => setNewFacture({ ...newFacture, description: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  placeholder="Ex: Consultoria técnica - Projeto A"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <Calendar className="h-4 w-4 inline mr-1" />
+                    Data
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={newFacture.date}
+                    onChange={(e) => setNewFacture({ ...newFacture, date: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Vencimento
+                  </label>
+                  <input
+                    type="date"
+                    value={newFacture.due_date}
+                    onChange={(e) => setNewFacture({ ...newFacture, due_date: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <DollarSign className="h-4 w-4 inline mr-1" />
+                  Valor Total (CHF)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  required
+                  value={newFacture.total_amount}
+                  onChange={(e) => setNewFacture({ ...newFacture, total_amount: parseFloat(e.target.value) || 0 })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  placeholder="0.00"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Status
+                </label>
+                <select
+                  value={newFacture.status}
+                  onChange={(e) => setNewFacture({ ...newFacture, status: e.target.value as 'pending' | 'paid' | 'overdue' })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                >
+                  <option value="pending">Pendente</option>
+                  <option value="paid">Pago</option>
+                  <option value="overdue">Vencido</option>
+                </select>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreating}
+                  className="flex-1 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isCreating ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Criando...
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="h-4 w-4" />
+                      Criar Fatura
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>
