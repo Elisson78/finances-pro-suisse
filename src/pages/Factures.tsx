@@ -220,6 +220,11 @@ export default function Factures() {
     }
   ];
 
+  // Monitorar mudanças no showModal para debug
+  useEffect(() => {
+    console.log('🔍 Factures - showModal mudou para:', showModal);
+  }, [showModal]);
+
   // Buscar faturas
   useEffect(() => {
     async function fetchFactures() {
@@ -425,7 +430,11 @@ export default function Factures() {
           <p className="text-gray-600 mt-2">Créez et gérez vos factures clients</p>
         </div>
         <button
-          onClick={() => setShowModal(true)}
+          onClick={() => {
+            console.log('🔍 Factures - Botão clicado, showModal atual:', showModal);
+            setShowModal(true);
+            console.log('🔍 Factures - showModal definido como true');
+          }}
           className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 flex items-center gap-2 font-medium"
         >
           <span className="material-icons">add</span>
