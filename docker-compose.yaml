@@ -27,6 +27,27 @@ services:
       - "traefik.http.routers.backend.tls.certresolver=letsencrypt"
       - "traefik.http.services.backend.loadbalancer.server.port=3000"
 
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: finances-frontend-prod
+    ports:
+      - "8080:80"
+    environment:
+      - REACT_APP_API_URL=https://api.finance.event-connect.app
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - coolify
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`finance.event-connect.app`)"
+      - "traefik.http.routers.frontend.tls=true"
+      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+
 networks:
   coolify:
     external: true
