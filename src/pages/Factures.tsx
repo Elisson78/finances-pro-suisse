@@ -46,12 +46,20 @@ export default function Factures() {
         if (response.ok) {
           const result = await response.json();
           setFactures(result.data || []);
+        } else if (response.status === 401) {
+          setError('Sessão expirada. Faça login novamente.');
+          // Redirecionar para login em 3 segundos
+          setTimeout(() => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+          }, 3000);
         } else {
           throw new Error('Erro ao buscar faturas');
         }
       } catch (err) {
         console.error('Erro ao buscar faturas:', err);
-        setError('Erro ao carregar faturas');
+        setError('Erro ao carregar faturas. Tente fazer login novamente.');
       } finally {
         setLoading(false);
       }
