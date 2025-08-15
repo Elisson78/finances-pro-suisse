@@ -10,9 +10,7 @@ import PrivateRoute from './components/common/PrivateRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import DashboardHome from './pages/DashboardHome';
 import Factures from './pages/Factures';
-import Clients from './pages/Clients';
 import ServicesPage from './pages/ServicesPage';
-import Reports from './pages/Reports';
 
 const App: React.FC = () => {
   return (
@@ -32,9 +30,7 @@ const App: React.FC = () => {
           >
             <Route index element={<DashboardHome />} />
             <Route path="factures" element={<Factures />} />
-            <Route path="clients" element={<Clients />} />
             <Route path="services" element={<ServicesPage />} />
-            <Route path="reports" element={<Reports />} />
           </Route>
 
         </Routes>
