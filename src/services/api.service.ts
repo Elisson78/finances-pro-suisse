@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import { User, Client, Facture, Service } from '../types/global';
 
 // Base URL da API
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://finance.event-connect.app';
 
 // Interface para resposta padrão da API
 interface ApiResponse<T> {
