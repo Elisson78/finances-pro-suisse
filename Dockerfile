@@ -24,7 +24,7 @@ RUN cp -r build/* /usr/share/nginx/html/
 RUN cat > /app/start.sh << 'EOF'
 #!/bin/sh
 echo "Starting backend..."
-node server.js &
+cd /app && node server.js &
 BACKEND_PID=$!
 
 echo "Starting nginx..."

@@ -44,6 +44,15 @@ app.get('/', (req, res) => {
   });
 });
 
+// Health check route
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 // Define API routes
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/clients', require('./routes/client.routes'));
