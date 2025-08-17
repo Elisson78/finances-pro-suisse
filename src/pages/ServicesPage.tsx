@@ -90,27 +90,27 @@ export default function ServicesPage() {
       console.log('🔍 Services - Iniciando busca de serviços...');
       setLoading(true);
       
-      // Tentar buscar da API primeiro
+      // Sempre usar dados de exemplo por enquanto (até API estar pronta)
+      console.log('🔍 Services - Carregando dados de exemplo');
+      setServices(sampleServices);
+      
+      // Tentativa de buscar da API em background (sem bloquear)
       try {
         const result = await apiService.getServices();
         console.log('🔍 Services - Dados da API:', result);
         
         if (result && result.length > 0) {
+          console.log('🔍 Services - API funcionando, usando dados da API');
           setServices(result);
-          setLoading(false);
-          return;
         }
       } catch (apiError) {
-        console.log('🔍 Services - API não disponível, usando dados de exemplo:', apiError);
+        console.log('🔍 Services - API não disponível, mantendo dados de exemplo:', apiError);
+        // Manter dados de exemplo já carregados
       }
-      
-      // Se API não funcionar, usar dados de exemplo
-      console.log('🔍 Services - Usando dados de exemplo para desenvolvimento');
-      setServices(sampleServices);
       
     } catch (err) {
       console.error('❌ Services - Erro ao buscar serviços:', err);
-      setError('Erro ao carregar serviços. Usando dados de exemplo para desenvolvimento.');
+      // Garantir que sempre carrega dados de exemplo
       setServices(sampleServices);
     } finally {
       setLoading(false);
@@ -163,26 +163,34 @@ export default function ServicesPage() {
           setServices(prev => prev.map(s => s.id === editingService.id ? updatedService : s));
         }
       } else {
-        // Criar novo serviço
+        // Criar novo serviço - sempre criar localmente primeiro
+        const newServiceWithId: Service = { 
+          ...newService, 
+          id: Date.now().toString(),
+          user_id: 'user_1',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        
+        // Adicionar à lista imediatamente
+        setServices(prev => [...prev, newServiceWithId]);
+        console.log('🔍 Services - Serviço criado localmente:', newServiceWithId);
+        
+        // Tentar sincronizar com API em background
         try {
           const createdService = await apiService.createService({
             ...newService,
             user_id: 'user_1'
           });
-          console.log('🔍 Services - Serviço criado via API:', createdService);
-          setServices(prev => [...prev, createdService]);
-        } catch (apiError) {
-          console.log('🔍 Services - API não disponível, criando localmente:', apiError);
+          console.log('🔍 Services - Serviço sincronizado com API:', createdService);
           
-          // Criar localmente se API não funcionar
-          const newServiceWithId: Service = { 
-            ...newService, 
-            id: Date.now().toString(),
-            user_id: 'user_1',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          };
-          setServices(prev => [...prev, newServiceWithId]);
+          // Atualizar com dados da API se sucesso
+          setServices(prev => prev.map(s => 
+            s.id === newServiceWithId.id ? createdService : s
+          ));
+        } catch (apiError) {
+          console.log('🔍 Services - API não disponível para sincronização:', apiError);
+          // Manter dados locais
         }
       }
       

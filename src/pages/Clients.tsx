@@ -101,28 +101,29 @@ export default function Clients() {
   const fetchClients = async () => {
     try {
       console.log('🔍 Clients - Iniciando busca de clientes...');
+      setLoading(true);
       
-      // Tentar buscar da API primeiro
+      // Sempre usar dados de exemplo por enquanto (até API estar pronta)
+      console.log('🔍 Clients - Carregando dados de exemplo');
+      setClients(sampleClients);
+      
+      // Tentativa de buscar da API em background (sem bloquear)
       try {
         const result = await apiService.getClients();
         console.log('🔍 Clients - Dados da API:', result);
         
         if (result && result.length > 0) {
+          console.log('🔍 Clients - API funcionando, usando dados da API');
           setClients(result);
-          setLoading(false);
-          return;
         }
       } catch (apiError) {
-        console.log('🔍 Clients - API não disponível, usando dados de exemplo:', apiError);
+        console.log('🔍 Clients - API não disponível, mantendo dados de exemplo:', apiError);
+        // Manter dados de exemplo já carregados
       }
-      
-      // Se API não funcionar, usar dados de exemplo
-      console.log('🔍 Clients - Usando dados de exemplo para desenvolvimento');
-      setClients(sampleClients);
       
     } catch (err) {
       console.error('❌ Clients - Erro ao buscar clientes:', err);
-      setError('Erro ao carregar clientes. Usando dados de exemplo para desenvolvimento.');
+      // Garantir que sempre carrega dados de exemplo
       setClients(sampleClients);
     } finally {
       setLoading(false);
@@ -156,28 +157,34 @@ export default function Clients() {
     try {
       console.log('🔍 Clients - Criando novo cliente...');
       
-      // Tentar criar via API primeiro
+      // Criar novo cliente - sempre criar localmente primeiro
+      const newClientWithId: Client = { 
+        ...newClient, 
+        id: Date.now().toString(),
+        user_id: 'user_1',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      // Adicionar à lista imediatamente
+      setClients(prev => [...prev, newClientWithId]);
+      console.log('🔍 Clients - Cliente criado localmente:', newClientWithId);
+      
+      // Tentar sincronizar com API em background
       try {
-        const result = await apiService.createClient({
+        const createdClient = await apiService.createClient({
           ...newClient,
           user_id: 'user_1'
         });
-        console.log('🔍 Clients - Cliente criado via API:', result);
+        console.log('🔍 Clients - Cliente sincronizado com API:', createdClient);
         
-        // Recarregar clientes
-        await fetchClients();
+        // Atualizar com dados da API se sucesso
+        setClients(prev => prev.map(c => 
+          c.id === newClientWithId.id ? createdClient : c
+        ));
       } catch (apiError) {
-        console.log('🔍 Clients - API não disponível, criando localmente:', apiError);
-        
-        // Criar localmente se API não funcionar
-        const newClientWithId: Client = { 
-          ...newClient, 
-          id: Date.now().toString(),
-          user_id: 'user_1',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-        setClients(prev => [...prev, newClientWithId]);
+        console.log('🔍 Clients - API não disponível para sincronização:', apiError);
+        // Manter dados locais
       }
       
       // Resetar formulário

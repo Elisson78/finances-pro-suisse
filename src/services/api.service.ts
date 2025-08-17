@@ -2,7 +2,12 @@ import axios, { AxiosResponse } from 'axios';
 import { User, Client, Facture, Service } from '../types/global';
 
 // Base URL da API
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || (
+  // Em produção, usar a mesma URL base, em desenvolvimento usar localhost
+  typeof window !== 'undefined' && window.location.hostname !== 'localhost' 
+    ? '' // Usar URL relativa em produção (mesma origem)
+    : 'http://localhost:5000'
+);
 
 // Interface para resposta padrão da API
 interface ApiResponse<T> {
