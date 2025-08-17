@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Login - FinancesPro</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input { width: 300px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        button { background: #dc2626; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #b91c1c; }
+        .result { margin-top: 20px; padding: 15px; border-radius: 4px; }
+        .success { background: #d1fae5; border: 1px solid #10b981; }
+        .error { background: #fee2e2; border: 1px solid #ef4444; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste de Login - FinancesPro Suisse</h1>
+    
+    <div class="form-group">
+        <label for="email">Email:</label>
+        <input type="email" id="email" placeholder="Digite seu email">
+    </div>
+    
+    <div class="form-group">
+        <label for="password">Senha:</label>
+        <input type="password" id="password" placeholder="Digite sua senha">
+    </div>
+    
+    <button onclick="testLogin()">🔐 Testar Login</button>
+    
+    <div id="result"></div>
+    
+    <h3>📋 Informações de Teste:</h3>
+    <p><strong>Backend URL:</strong> <span id="backendUrl"></span></p>
+    <p><strong>Frontend URL:</strong> <span id="frontendUrl"></span></p>
+    
+    <script>
+        // Mostrar URLs
+        document.getElementById('backendUrl').textContent = 'http://localhost:5000/api/auth/login';
+        document.getElementById('frontendUrl').textContent = window.location.origin;
+        
+        async function testLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('result');
+            
+            if (!email || !password) {
+                resultDiv.innerHTML = '<div class="error">❌ Por favor, preencha email e senha</div>';
+                return;
+            }
+            
+            try {
+                console.log('🔍 Testando login para:', email);
+                
+                const response = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                console.log('🔍 Resposta do servidor:', response.status, response.statusText);
+                
+                const data = await response.json();
+                console.log('🔍 Dados da resposta:', data);
+                
+                if (data.status === 'success') {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            ✅ <strong>Login bem-sucedido!</strong><br>
+                            Usuário: ${data.data.user.full_name}<br>
+                            Email: ${data.data.user.email}<br>
+                            Tipo: ${data.data.user.account_type}<br>
+                            Token: ${data.data.token.substring(0, 20)}...
+                        </div>
+                    `;
+                    
+                    // Salvar no localStorage para teste
+                    localStorage.setItem('authToken', data.data.token);
+                    localStorage.setItem('user', JSON.stringify(data.data.user));
+                    console.log('🔍 Dados salvos no localStorage');
+                    
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            ❌ <strong>Erro no login:</strong><br>
+                            ${data.message}
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                console.error('❌ Erro na requisição:', error);
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ <strong>Erro de conexão:</strong><br>
+                        ${error.message}<br>
+                        Verifique se o backend está rodando em http://localhost:5000
+                    </div>
+                `;
+            }
+        }
+        
+        // Testar se o backend está acessível
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch('http://localhost:5000/');
+                const data = await response.json();
+                console.log('🔍 Backend acessível:', data);
+            } catch (error) {
+                console.error('❌ Backend não acessível:', error);
+            }
+        });
+    </script>
+</body>
+</html>
+

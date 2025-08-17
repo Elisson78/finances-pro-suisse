@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Configuração da API - FinancesPro</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .test-section { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .success { background: #d1fae5; border-color: #10b981; }
+        .error { background: #fee2e2; border-color: #ef4444; }
+        .info { background: #dbeafe; border-color: #3b82f6; }
+        button { background: #dc2626; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #b91c1c; }
+        .result { margin-top: 15px; padding: 10px; border-radius: 4px; background: #f3f4f6; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Teste de Configuração da API - FinancesPro Suisse</h1>
+    
+    <div class="test-section info">
+        <h3>📋 Informações do Ambiente</h3>
+        <p><strong>URL Atual:</strong> <span id="currentUrl"></span></p>
+        <p><strong>VITE_API_URL:</strong> <span id="viteApiUrl"></span></p>
+        <p><strong>User Agent:</strong> <span id="userAgent"></span></p>
+    </div>
+    
+    <div class="test-section">
+        <h3>🔍 Teste de Configuração da API</h3>
+        <button onclick="testApiConfig()">Testar Configuração</button>
+        <button onclick="testLocalBackend()">Testar Backend Local</button>
+        <button onclick="testProductionApi()">Testar API Produção</button>
+        <div id="apiConfigResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>🔐 Teste de Login</h3>
+        <div>
+            <label>Email: <input type="email" id="loginEmail" value="test@test.com" /></label><br><br>
+            <label>Senha: <input type="password" id="loginPassword" value="test123456" /></label><br><br>
+            <button onclick="testLogin()">Testar Login</button>
+        </div>
+        <div id="loginResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>📝 Teste de Registro</h3>
+        <div>
+            <label>Nome: <input type="text" id="regName" value="Test User" /></label><br><br>
+            <label>Email: <input type="email" id="regEmail" value="test2@test.com" /></label><br><br>
+            <label>Empresa: <input type="text" id="regCompany" value="Test Company" /></label><br><br>
+            <label>Senha: <input type="password" id="regPassword" value="test123456" /></label><br><br>
+            <button onclick="testRegister()">Testar Registro</button>
+        </div>
+        <div id="registerResult" class="result"></div>
+    </div>
+    
+    <script>
+        // Mostrar informações do ambiente
+        document.getElementById('currentUrl').textContent = window.location.href;
+        document.getElementById('viteApiUrl').textContent = import.meta?.env?.VITE_API_URL || 'Não definido';
+        document.getElementById('userAgent').textContent = navigator.userAgent;
+        
+        // Simular import.meta.env para teste
+        if (typeof import === 'undefined') {
+            window.import = { meta: { env: { VITE_API_URL: 'https://finance.event-connect.app' } } };
+        }
+        
+        async function testApiConfig() {
+            const resultDiv = document.getElementById('apiConfigResult');
+            resultDiv.innerHTML = '<div class="info">🔍 Testando configuração da API...</div>';
+            
+            try {
+                // Testar diferentes URLs
+                const urls = [
+                    'https://finance.event-connect.app/api',
+                    '/api',
+                    'http://localhost:5000/api',
+                    'http://localhost:8080/api'
+                ];
+                
+                let results = [];
+                
+                for (const url of urls) {
+                    try {
+                        const response = await fetch(`${url}/auth/login`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: 'test@test.com', password: 'test123' })
+                        });
+                        
+                        results.push(`✅ ${url}: ${response.status} ${response.statusText}`);
+                    } catch (error) {
+                        results.push(`❌ ${url}: ${error.message}`);
+                    }
+                }
+                
+                resultDiv.innerHTML = `
+                    <div class="info">
+                        <h4>Resultados dos Testes:</h4>
+                        ${results.map(r => `<div>${r}</div>`).join('')}
+                    </div>
+                `;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Erro no teste: ${error.message}</div>`;
+            }
+        }
+        
+        async function testLocalBackend() {
+            const resultDiv = document.getElementById('apiConfigResult');
+            resultDiv.innerHTML = '<div class="info">🔍 Testando backend local...</div>';
+            
+            try {
+                const response = await fetch('http://localhost:5000/');
+                const data = await response.json();
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        ✅ Backend local acessível:<br>
+                        ${JSON.stringify(data, null, 2)}
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Backend local não acessível: ${error.message}</div>`;
+            }
+        }
+        
+        async function testProductionApi() {
+            const resultDiv = document.getElementById('apiConfigResult');
+            resultDiv.innerHTML = '<div class="info">🔍 Testando API de produção...</div>';
+            
+            try {
+                const response = await fetch('https://finance.event-connect.app/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: 'test@test.com', password: 'test123' })
+                });
+                
+                resultDiv.innerHTML = `
+                    <div class="info">
+                        ✅ API de produção acessível:<br>
+                        Status: ${response.status} ${response.statusText}
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ API de produção não acessível: ${error.message}</div>`;
+            }
+        }
+        
+        async function testLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const resultDiv = document.getElementById('loginResult');
+            
+            resultDiv.innerHTML = '<div class="info">🔍 Testando login...</div>';
+            
+            try {
+                const response = await fetch('https://finance.event-connect.app/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            ✅ Login bem-sucedido!<br>
+                            Usuário: ${data.data.user.full_name}<br>
+                            Email: ${data.data.user.email}
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            ❌ Erro no login: ${data.message}
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Erro de conexão: ${error.message}</div>`;
+            }
+        }
+        
+        async function testRegister() {
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const company = document.getElementById('regCompany').value;
+            const password = document.getElementById('regPassword').value;
+            const resultDiv = document.getElementById('registerResult');
+            
+            resultDiv.innerHTML = '<div class="info">🔍 Testando registro...</div>';
+            
+            try {
+                const response = await fetch('https://finance.event-connect.app/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        full_name: name, 
+                        email, 
+                        company, 
+                        password 
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            ✅ Registro bem-sucedido!<br>
+                            Usuário: ${data.data.user.full_name}<br>
+                            Email: ${data.data.user.email}
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            ❌ Erro no registro: ${data.message}
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Erro de conexão: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
+

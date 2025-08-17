@@ -365,15 +365,15 @@ export default function Factures() {
           updated_at: new Date().toISOString()
         };
         setFactures(prev => [...prev, newFactureWithId]);
-      }
-      
-      // Resetar formulário
-      setNewFacture({
-        client_name: '',
-        description: '',
-        date: new Date().toISOString().split('T')[0],
-        due_date: '',
-        total_amount: 0,
+        }
+        
+        // Resetar formulário
+        setNewFacture({
+          client_name: '',
+          description: '',
+          date: new Date().toISOString().split('T')[0],
+          due_date: '',
+          total_amount: 0,
         status: 'brouillon'
       });
       
@@ -385,8 +385,8 @@ export default function Factures() {
         unitPrice: 0,
         total: 0
       }]);
-      
-      setShowModal(false);
+        
+        setShowModal(false);
       
     } catch (err) {
       console.error('❌ Factures - Erro ao criar fatura:', err);
@@ -441,7 +441,7 @@ export default function Factures() {
           + Nouvelle facture
         </button>
       </div>
-
+      
       {/* Barra de busca e filtros */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="flex-1 relative">
@@ -479,16 +479,16 @@ export default function Factures() {
         </div>
         
         {filteredFactures.length === 0 ? (
-          <div className="text-center py-12">
+        <div className="text-center py-12">
             <p className="text-gray-500">Aucune facture trouvée</p>
-            <button 
-              onClick={() => setShowModal(true)}
-              className="mt-4 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
-            >
+          <button 
+            onClick={() => setShowModal(true)}
+            className="mt-4 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+          >
               Créer votre première facture
-            </button>
-          </div>
-        ) : (
+          </button>
+        </div>
+      ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -608,12 +608,12 @@ export default function Factures() {
                       <option key={client} value={client}>{client}</option>
                     ))}
                   </select>
-                </div>
+            </div>
 
-                <div>
+              <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Statut
-                  </label>
+                </label>
                   <select
                     value={newFacture.status}
                     onChange={(e) => setNewFacture({ ...newFacture, status: e.target.value as 'envoyée' | 'payée' | 'brouillon' })}
@@ -623,7 +623,7 @@ export default function Factures() {
                     <option value="envoyée">Envoyée</option>
                     <option value="payée">Payée</option>
                   </select>
-                </div>
+              </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -698,10 +698,10 @@ export default function Factures() {
                             />
                           </td>
                           <td className="px-4 py-3">
-                            <input
-                              type="number"
-                              step="0.01"
-                              min="0"
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
                               value={item.unitPrice}
                               onChange={(e) => updateInvoiceItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
                               className="w-24 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500"
@@ -726,7 +726,7 @@ export default function Factures() {
                       ))}
                     </tbody>
                   </table>
-                </div>
+              </div>
 
                 <button
                   type="button"

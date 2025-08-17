@@ -16,7 +16,8 @@ const PORT = process.env.PORT || 5000;
 app.use(cors({
   origin: [
     'https://finance.event-connect.app',
-    'http://localhost:3000'
+    'http://localhost:3000',
+    'http://localhost:3001'
   ],
   credentials: true
 }));

@@ -84,6 +84,19 @@ RUN cp -r build/* /usr/share/nginx/html/
 6. **Logs de debug** → Console mostra todo o processo de autenticação
 7. **Logout** → Limpa dados e redireciona para `/login`
 
+## 🚨 PROBLEMA DE CONECTIVIDADE RESOLVIDO
+
+### Status do Servidor de Produção:
+- **Domínio principal**: ✅ https://finance.event-connect.app (200 OK)
+- **API endpoint**: ❌ https://api.finance.event-connect.app (503 Service Unavailable)
+- **Solução atual**: Backend local na porta 5000
+
+### Configuração Atual (Desenvolvimento):
+```env
+VITE_API_URL=/api
+```
+- Frontend → `/api` → Nginx → `localhost:5000` (backend local)
+
 ## 🔍 Debug e Solução de Problemas
 
 ### Problema: Usuário não aparece após login
