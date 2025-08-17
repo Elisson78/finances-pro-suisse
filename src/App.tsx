@@ -11,6 +11,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import DashboardHome from './pages/DashboardHome';
 import Factures from './pages/Factures';
 import ServicesPage from './pages/ServicesPage';
+import Clients from './pages/Clients';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminUsers from './pages/admin/AdminUsers';
 
@@ -33,6 +34,7 @@ const App: React.FC = () => {
             <Route index element={<DashboardHome />} />
             <Route path="factures" element={<Factures />} />
             <Route path="services" element={<ServicesPage />} />
+            <Route path="clients" element={<Clients />} />
           </Route>
 
           <Route 

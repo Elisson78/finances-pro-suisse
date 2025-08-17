@@ -234,17 +234,6 @@ const DashboardPage: React.FC = () => {
                   <span className="material-icons">menu</span>
                 </button>
                 
-                {/* Informações do usuário logado */}
-                <div className="flex items-center gap-4">
-                  <div className="text-center">
-                    <div className="text-sm text-gray-600">Usuário logado:</div>
-                    <div className="text-lg font-bold text-gray-800">{fullName}</div>
-                    <div className="text-sm text-gray-600">{user.email}</div>
-                    <div className="text-xs text-blue-600 font-semibold capitalize">
-                      {user.account_type === 'administrateur' ? 'Administrador' : 'Empresa'}
-                    </div>
-                  </div>
-                </div>
                 
                 <div className="flex items-center ml-auto">
                   <div className="relative">

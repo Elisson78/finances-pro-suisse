@@ -33,13 +33,16 @@ const LoginPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('🚀 handleSubmit - Iniciando processo de login');
+    console.log('🚀 handleSubmit - Dados do formulário:', { email: formData.email, hasPassword: !!formData.password });
+    
     setError(null);
     setIsLoading(true);
     
     try {
-      console.log('Tentando fazer login...', formData.email);
+      console.log('🔍 Tentando fazer login...', formData.email);
       const result = await apiService.login(formData.email, formData.password);
-      console.log('Login bem-sucedido:', result);
+      console.log('✅ Login bem-sucedido:', result);
       
       // Redirecionar baseado no tipo de conta
       let redirectPath = '/dashboard'; // Padrão para empresas
@@ -48,12 +51,19 @@ const LoginPage: React.FC = () => {
         redirectPath = '/dashboard-admin';
       }
       
-      console.log(`Redirecionando usuário ${result.user.account_type} para: ${redirectPath}`);
+      console.log(`🔀 Redirecionando usuário ${result.user.account_type} para: ${redirectPath}`);
       navigate(redirectPath, { replace: true });
     } catch (err: any) {
-      console.error('Login error:', err);
+      console.error('❌ Login error:', err);
+      console.error('❌ Error details:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+        statusText: err.response?.statusText
+      });
       setError(err.response?.data?.message || err.message || 'Erreur de connexion. Veuillez vérifier vos informations.');
     } finally {
+      console.log('🏁 handleSubmit - Finalizando processo, setIsLoading(false)');
       setIsLoading(false);
     }
   };

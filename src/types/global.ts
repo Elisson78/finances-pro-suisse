@@ -37,17 +37,20 @@ export interface SignUpCredentials {
 export interface Client {
   id: string;
   company: string;
-  contact_person: string;
-  email: string;
-  phone: string;
-  address: string;
-  city: string;
-  postal_code: string;
-  country: string;
-  category: string;
+  contact_person?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  postal_code?: string;
+  country?: string;
+  vat_number?: string;
+  payment_terms?: number;
+  is_active: boolean;
   user_id: string;
   created_at: string;
   updated_at: string;
+  category?: string;
   tax_number?: string; // Para compatibilidade com postgres.service
 }
 
