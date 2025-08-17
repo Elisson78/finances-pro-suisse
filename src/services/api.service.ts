@@ -3,9 +3,9 @@ import { User, Client, Facture, Service } from '../types/global';
 
 // Base URL da API
 const API_BASE_URL = import.meta.env.VITE_API_URL || (
-  // Em produção, usar a API em subdomínio, em desenvolvimento usar localhost
+  // Em produção, usar URL relativa (nginx faz proxy), em desenvolvimento usar localhost
   typeof window !== 'undefined' && window.location.hostname !== 'localhost' 
-    ? 'https://api.finance.event-connect.app' // API em produção
+    ? '' // URL relativa em produção (nginx proxy para backend)
     : 'http://localhost:5000'
 );
 
