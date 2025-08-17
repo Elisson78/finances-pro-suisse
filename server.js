@@ -10,7 +10,7 @@ dotenv.config();
 
 // Initialize express app
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = 5000; // Força porta 5000 para backend, nginx usa 8080
 
 // Middleware
 app.use(cors({
