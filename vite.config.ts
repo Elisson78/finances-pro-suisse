@@ -35,7 +35,7 @@ export default defineConfig({
       },
     },
   },
-  base: './',
+  base: '/',
   optimizeDeps: {
     esbuildOptions: {
       target: 'es2020',
