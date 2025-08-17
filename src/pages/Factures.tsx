@@ -56,16 +56,16 @@ export default function Factures() {
 
   // Calcular totais
   const calculateTotals = () => {
-    const subtotal = invoiceItems.reduce((sum, item) => sum + item.total, 0);
-    const tva = subtotal * 0.077; // 7.7% TVA
-    const total = subtotal + tva;
-    
-    setNewFacture(prev => ({
-      ...prev,
-      total_amount: total
-    }));
-    
-    return { subtotal, tva, total };
+    try {
+      const subtotal = invoiceItems.reduce((sum, item) => sum + (item.total || 0), 0);
+      const tva = subtotal * 0.077; // 7.7% TVA
+      const total = subtotal + tva;
+      
+      return { subtotal, tva, total };
+    } catch (error) {
+      console.error('❌ Erro ao calcular totais:', error);
+      return { subtotal: 0, tva: 0, total: 0 };
+    }
   };
 
   // Atualizar item da fatura
@@ -224,6 +224,15 @@ export default function Factures() {
   useEffect(() => {
     console.log('🔍 Factures - showModal mudou para:', showModal);
   }, [showModal]);
+
+  // Atualizar total quando itens mudarem
+  useEffect(() => {
+    const { total } = calculateTotals();
+    setNewFacture(prev => ({
+      ...prev,
+      total_amount: total
+    }));
+  }, [invoiceItems]);
 
   // Buscar faturas
   useEffect(() => {
@@ -430,10 +439,16 @@ export default function Factures() {
           <p className="text-gray-600 mt-2">Créez et gérez vos factures clients</p>
         </div>
         <button
-          onClick={() => {
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
             console.log('🔍 Factures - Botão clicado, showModal atual:', showModal);
             setShowModal(true);
             console.log('🔍 Factures - showModal definido como true');
+            // Forçar re-render
+            setTimeout(() => {
+              console.log('🔍 Factures - showModal após timeout:', showModal);
+            }, 100);
           }}
           className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 flex items-center gap-2 font-medium"
         >
@@ -570,7 +585,8 @@ export default function Factures() {
         )}
       </div>
 
-      {/* Modal de Nova Fatura - VERSÃO MODERNIZADA */}
+      {/* Modal de Nova Fatura - VERSÃO COMPLETA */}
+      {console.log('🔍 Factures - Renderizando modal, showModal:', showModal)}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-auto max-h-[90vh] overflow-y-auto">
@@ -608,12 +624,12 @@ export default function Factures() {
                       <option key={client} value={client}>{client}</option>
                     ))}
                   </select>
-            </div>
+                </div>
 
-              <div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Statut
-                </label>
+                  </label>
                   <select
                     value={newFacture.status}
                     onChange={(e) => setNewFacture({ ...newFacture, status: e.target.value as 'envoyée' | 'payée' | 'brouillon' })}
@@ -623,7 +639,7 @@ export default function Factures() {
                     <option value="envoyée">Envoyée</option>
                     <option value="payée">Payée</option>
                   </select>
-              </div>
+                </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -651,7 +667,7 @@ export default function Factures() {
                 </div>
               </div>
 
-              {/* Artigos de la facture */}
+              {/* Artigos da facture */}
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Articles de la facture</h3>
                 
@@ -698,10 +714,10 @@ export default function Factures() {
                             />
                           </td>
                           <td className="px-4 py-3">
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
                               value={item.unitPrice}
                               onChange={(e) => updateInvoiceItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
                               className="w-24 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-red-500"
@@ -726,7 +742,7 @@ export default function Factures() {
                       ))}
                     </tbody>
                   </table>
-              </div>
+                </div>
 
                 <button
                   type="button"
@@ -791,4 +807,4 @@ export default function Factures() {
       )}
     </div>
   );
-}
+};
